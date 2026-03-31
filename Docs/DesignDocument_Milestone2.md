@@ -195,14 +195,13 @@ Frontend → GET /api/expenses/balances/group/{id} → Backend authenticates →
 ## 4. Technology Stack
 
 ### 4.1 Backend Technologies
-- **Framework:** FastAPI 0.109.0 - Modern, fast web framework for building APIs
-- **Database:** SQLite (development) / PostgreSQL (production)
-- **ORM:** SQLAlchemy 2.0.25 - SQL toolkit and ORM
-- **Authentication:** 
-  - python-jose 3.3.0 - JWT token generation
-  - passlib 1.7.4 - Password hashing with bcrypt
-- **Server:** Uvicorn 0.27.0 - ASGI server
-- **Validation:** Pydantic 2.5.3 - Data validation using Python type hints
+- **Framework:** Spring Boot 3.2.0 - Enterprise Java framework for building APIs
+- **Language:** Java 17
+- **Database:** H2 (development) / PostgreSQL (production)
+- **ORM:** Spring Data JPA with Hibernate - Object-relational mapping
+- **Authentication:** Spring Security with JWT token generation
+- **Build Tool:** Maven 3.9+ - Dependency management and build automation
+- **Server:** Embedded Tomcat - Application server
 
 ### 4.2 Frontend Technologies
 - **Framework:** React 18.2.0 - Component-based UI library
@@ -214,9 +213,9 @@ Frontend → GET /api/expenses/balances/group/{id} → Backend authenticates →
 
 ### 4.3 Development Tools
 - **Version Control:** Git & GitHub
-- **API Documentation:** FastAPI automatic OpenAPI/Swagger documentation
-- **Testing:** Pytest (backend), Jest (frontend) - planned for Milestone 3
-- **Environment Management:** Python dotenv, Node.js package.json
+- **API Documentation:** Spring REST Docs / Swagger (planned)
+- **Testing:** JUnit 5 + Spring Boot Test (backend), Jest (frontend) - planned for Milestone 3
+- **Build Tool:** Maven
 
 ---
 
@@ -305,17 +304,17 @@ Frontend → GET /api/expenses/balances/group/{id} → Backend authenticates →
 - **Authentication:** JWT tokens with expiration
 - **Authorization:** Protected routes verify user membership
 - **CORS:** Configured for frontend origin
-- **SQL Injection:** Prevented by SQLAlchemy ORM
-- **Input Validation:** Pydantic schemas validate all inputs
+- **SQL Injection:** Prevented by JPA/Hibernate ORM
+- **Input Validation:** Spring Validation annotations validate all inputs
 
 ---
 
 ## 8. Scalability Considerations
 
-- **Database:** Can migrate from SQLite to PostgreSQL for production
+- **Database:** Can migrate from H2 to PostgreSQL for production
 - **Caching:** Redis can be added for session management
-- **Load Balancing:** FastAPI supports multiple worker processes
-- **Microservices:** Services can be separated if needed
+- **Load Balancing:** Spring Boot supports horizontal scaling with load balancers
+- **Microservices:** Services can be separated using Spring Cloud if needed
 - **CDN:** Frontend static assets can be served via CDN
 
 ---
