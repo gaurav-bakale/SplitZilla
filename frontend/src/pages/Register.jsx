@@ -91,6 +91,7 @@ const Register = () => {
                   id="name"
                   name="name"
                   type="text"
+                  autoComplete="name"
                   required
                   className="auth-input"
                   placeholder="Your full name"
@@ -105,6 +106,7 @@ const Register = () => {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   className="auth-input"
                   placeholder="you@futurepay.space"
@@ -119,6 +121,7 @@ const Register = () => {
                   id="password"
                   name="password"
                   type="password"
+                  autoComplete="new-password"
                   required
                   className="auth-input"
                   placeholder="Create a strong passcode"

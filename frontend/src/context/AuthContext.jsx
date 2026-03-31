@@ -4,23 +4,34 @@ import api from '../api/axios';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (!token) {
+      setUser(null);
       setLoading(false);
-    } else {
-      setLoading(false);
+      return;
     }
+
+    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     const response = await api.post('/api/auth/login', { email, password });
-    
+    const nextUser = {
+      email: response.data.email || email,
+      name: response.data.name || '',
+      user_id: response.data.user_id || '',
+    };
+
     localStorage.setItem('token', response.data.access_token);
-    setUser({ email });
+    localStorage.setItem('user', JSON.stringify(nextUser));
+    setUser(nextUser);
     return response.data;
   };
 
@@ -35,6 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 

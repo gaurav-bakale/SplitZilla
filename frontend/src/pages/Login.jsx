@@ -93,6 +93,7 @@ const Login = () => {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   className="auth-input"
                   placeholder="captain@splitzilla.ai"
@@ -107,6 +108,7 @@ const Login = () => {
                   id="password"
                   name="password"
                   type="password"
+                  autoComplete="current-password"
                   required
                   className="auth-input"
                   placeholder="Enter your secure passcode"
