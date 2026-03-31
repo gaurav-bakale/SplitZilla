@@ -250,8 +250,22 @@ const GroupDetail = () => {
                 Add Expense
               </button>
             </div>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search expenses..."
+                value={expenseSearch}
+                onChange={(e) => setExpenseSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
             <div className="space-y-3">
-              {expenses.map((expense) => (
+              {expenses
+                .filter((expense) =>
+                  expense.description.toLowerCase().includes(expenseSearch.toLowerCase())
+                )
+                .map((expense) => (
                 <div key={expense.expense_id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -259,6 +273,11 @@ const GroupDetail = () => {
                       <p className="text-sm text-gray-500 mt-1">
                         Split: {expense.split_type} | {new Date(expense.date).toLocaleDateString()}
                       </p>
+                      {expense.paid_by_name && (
+                        <p className="text-sm text-indigo-600 mt-1">
+                          Paid by {expense.paid_by_name}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold text-gray-900">${expense.amount.toFixed(2)}</p>
@@ -266,8 +285,12 @@ const GroupDetail = () => {
                   </div>
                 </div>
               ))}
-              {expenses.length === 0 && (
-                <p className="text-gray-500 text-center py-8">No expenses yet</p>
+              {expenses.filter((e) =>
+                e.description.toLowerCase().includes(expenseSearch.toLowerCase())
+              ).length === 0 && (
+                <p className="text-gray-500 text-center py-8">
+                  {expenseSearch ? 'No expenses match your search' : 'No expenses yet'}
+                </p>
               )}
             </div>
           </div>
