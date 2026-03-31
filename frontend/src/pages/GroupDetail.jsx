@@ -20,6 +20,7 @@ const GroupDetail = () => {
   });
   const [memberEmail, setMemberEmail] = useState('');
   const [settlingKey, setSettlingKey] = useState('');
+  const [expenseSearch, setExpenseSearch] = useState('');
 
   useEffect(() => {
     if (groupId) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ArrowRight, Layers3, Radar, Users } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -20,96 +21,130 @@ const Register = () => {
       await register(name, email, password);
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      setError(err.response?.data?.error || err.response?.data?.detail || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Join SplitZilla today
+    <div className="auth-shell">
+      <div className="auth-gridline" />
+      <div className="auth-orbit left-8 top-10 h-56 w-56 bg-sky-500/20" />
+      <div className="auth-orbit bottom-0 right-10 h-72 w-72 bg-fuchsia-500/20" />
+      <div className="auth-orbit left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 bg-cyan-400/15" />
+
+      <div className="auth-grid">
+        <section className="auth-brand-panel">
+          <span className="auth-kicker">New Operator</span>
+          <h1 className="auth-title">Create Your Expense Identity</h1>
+          <p className="auth-subtitle">
+            Join a collaborative finance layer designed for trips, roommates, and fast-moving shared plans.
+            Build your account once and manage every split from a single, futuristic hub.
           </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-3">
-            <div>
-              <label htmlFor="name" className="sr-only">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? 'Creating account...' : 'Sign up'}
-            </button>
+          <div className="mt-10 space-y-4">
+            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-5">
+              <div className="flex items-center gap-3">
+                <Radar className="h-5 w-5 text-cyan-300" />
+                <p className="text-sm font-medium text-slate-100">Realtime balance awareness</p>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Keep every group aligned with instant balance snapshots and settlement suggestions.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-5">
+              <div className="flex items-center gap-3">
+                <Layers3 className="h-5 w-5 text-sky-300" />
+                <p className="text-sm font-medium text-slate-100">Multi-mode split engine</p>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Start simple now and scale into equal, percentage, or exact group flows.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-5">
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-fuchsia-300" />
+                <p className="text-sm font-medium text-slate-100">Built for shared decisions</p>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Invite people fast, track activity clearly, and keep group spending transparent.
+              </p>
+            </div>
           </div>
+        </section>
 
-          <div className="text-center">
-            <Link
-              to="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Already have an account? Sign in
-            </Link>
+        <section className="auth-panel">
+          <div className="relative z-10">
+            <span className="auth-kicker">Create Account</span>
+            <h2 className="auth-form-title mt-5">Initialize Split Access</h2>
+            <p className="auth-form-copy">
+              Set up your profile to start building groups, tracking expenses, and settling smarter.
+            </p>
+
+            <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+              {error && <div className="auth-error">{error}</div>}
+
+              <div>
+                <label htmlFor="name" className="auth-label">Full Name</label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  className="auth-input"
+                  placeholder="Your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="auth-label">Email Address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="auth-input"
+                  placeholder="you@futurepay.space"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="auth-label">Password</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="auth-input"
+                  placeholder="Create a strong passcode"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="auth-button"
+              >
+                {loading ? 'Creating Account...' : 'Activate Account'}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </button>
+
+              <div className="pt-2 text-center text-sm text-slate-400">
+                Already inside the network?{' '}
+                <Link to="/login" className="auth-link">
+                  Return to sign in
+                </Link>
+              </div>
+            </form>
           </div>
-        </form>
+        </section>
       </div>
     </div>
   );

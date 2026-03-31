@@ -1,17 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :root {
+    --auth-ink: #ebf2ff;
+    --auth-muted: #94a7c6;
+    --auth-panel: rgba(10, 18, 38, 0.76);
+    --auth-panel-border: rgba(130, 198, 255, 0.22);
+    --auth-accent: #5ce1e6;
+    --auth-accent-strong: #38bdf8;
+  }
+
+  html {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Space Grotesk', sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 28%),
+      radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.18), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(92, 225, 230, 0.12), transparent 25%),
+      #06101f;
+    color: var(--auth-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+@layer components {
+  .auth-shell {
+    @apply relative min-h-screen overflow-hidden;
+    background:
+      linear-gradient(135deg, rgba(7, 16, 34, 0.96), rgba(5, 11, 24, 0.92)),
+      #06101f;
+  }
+
+  .auth-grid {
+    @apply relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8;
+  }
+
+  .auth-brand-panel {
+    @apply relative overflow-hidden rounded-[2rem] border p-8 shadow-2xl backdrop-blur-xl sm:p-10 lg:p-12;
+    background: linear-gradient(180deg, rgba(10, 18, 38, 0.52), rgba(10, 18, 38, 0.28));
+    border-color: rgba(130, 198, 255, 0.12);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  }
+
+  .auth-brand-panel::before {
+    content: '';
+    @apply absolute inset-0;
+    background:
+      linear-gradient(115deg, rgba(92, 225, 230, 0.08), transparent 35%, rgba(139, 92, 246, 0.1) 70%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .auth-panel {
+    @apply relative overflow-hidden rounded-[2rem] border p-6 shadow-2xl backdrop-blur-2xl sm:p-8;
+    background: var(--auth-panel);
+    border-color: var(--auth-panel-border);
+    box-shadow:
+      0 25px 70px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .auth-panel::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-px;
+    background: linear-gradient(90deg, transparent, rgba(92, 225, 230, 0.9), transparent);
+  }
+
+  .auth-kicker {
+    @apply inline-flex items-center rounded-full border px-4 py-1 text-xs uppercase tracking-[0.35em];
+    color: var(--auth-accent);
+    border-color: rgba(92, 225, 230, 0.3);
+    background: rgba(92, 225, 230, 0.08);
+  }
+
+  .auth-title {
+    font-family: 'Orbitron', sans-serif;
+    @apply mt-6 text-4xl font-extrabold uppercase tracking-[0.12em] sm:text-5xl;
+    color: #f5f9ff;
+    text-shadow: 0 0 22px rgba(92, 225, 230, 0.15);
+  }
+
+  .auth-subtitle {
+    @apply mt-4 max-w-xl text-base leading-7 sm:text-lg;
+    color: var(--auth-muted);
+  }
+
+  .auth-stat-grid {
+    @apply mt-10 grid gap-4 sm:grid-cols-3;
+  }
+
+  .auth-stat {
+    @apply rounded-2xl border p-4;
+    background: rgba(7, 15, 30, 0.52);
+    border-color: rgba(130, 198, 255, 0.12);
+  }
+
+  .auth-stat-label {
+    @apply text-[11px] uppercase tracking-[0.3em];
+    color: var(--auth-muted);
+  }
+
+  .auth-stat-value {
+    font-family: 'Orbitron', sans-serif;
+    @apply mt-3 text-2xl font-bold;
+    color: #f8fbff;
+  }
+
+  .auth-form-title {
+    font-family: 'Orbitron', sans-serif;
+    @apply text-2xl font-bold uppercase tracking-[0.14em];
+    color: #f5f9ff;
+  }
+
+  .auth-form-copy {
+    @apply mt-3 text-sm leading-6;
+    color: var(--auth-muted);
+  }
+
+  .auth-label {
+    @apply mb-2 block text-xs font-medium uppercase tracking-[0.28em];
+    color: #adc2e7;
+  }
+
+  .auth-input {
+    @apply block w-full rounded-2xl border px-4 py-3 text-sm outline-none transition duration-200;
+    background: rgba(6, 13, 28, 0.8);
+    border-color: rgba(130, 198, 255, 0.12);
+    color: #f5f9ff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  }
+
+  .auth-input::placeholder {
+    color: #60759a;
+  }
+
+  .auth-input:focus {
+    border-color: rgba(92, 225, 230, 0.9);
+    box-shadow:
+      0 0 0 1px rgba(92, 225, 230, 0.2),
+      0 0 22px rgba(92, 225, 230, 0.12);
+  }
+
+  .auth-button {
+    @apply inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-950 transition duration-200;
+    background: linear-gradient(135deg, var(--auth-accent), var(--auth-accent-strong));
+    box-shadow: 0 16px 35px rgba(56, 189, 248, 0.26);
+  }
+
+  .auth-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 40px rgba(56, 189, 248, 0.32);
+  }
+
+  .auth-button:disabled {
+    @apply cursor-not-allowed opacity-60;
+    transform: none;
+    box-shadow: 0 12px 24px rgba(56, 189, 248, 0.18);
+  }
+
+  .auth-error {
+    @apply rounded-2xl border px-4 py-3 text-sm;
+    color: #ffd8e3;
+    background: rgba(91, 11, 40, 0.45);
+    border-color: rgba(255, 122, 157, 0.35);
+  }
+
+  .auth-link {
+    @apply text-sm font-medium transition;
+    color: var(--auth-accent);
+  }
+
+  .auth-link:hover {
+    color: #d9fbff;
+  }
+
+  .auth-orbit {
+    @apply pointer-events-none absolute rounded-full blur-3xl;
+  }
+
+  .auth-gridline {
+    @apply pointer-events-none absolute inset-0 opacity-40;
+    background-image:
+      linear-gradient(rgba(130, 198, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(130, 198, 255, 0.08) 1px, transparent 1px);
+    background-size: 90px 90px;
+    mask-image: radial-gradient(circle at center, black, transparent 78%);
+  }
 }
