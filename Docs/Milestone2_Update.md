@@ -20,11 +20,12 @@
 ## Tech Stack
 
 ### Backend
-- **Framework:** Python + FastAPI
-- **Database:** SQLite (development) / PostgreSQL (production-ready)
-- **ORM:** SQLAlchemy
-- **Authentication:** JWT (JSON Web Tokens) with bcrypt password hashing
-- **API Style:** RESTful API with automatic OpenAPI documentation
+- **Framework:** Java 17 + Spring Boot 3.2.0
+- **Database:** H2 (development) / PostgreSQL (production-ready)
+- **ORM:** Spring Data JPA with Hibernate
+- **Authentication:** Spring Security with JWT (JSON Web Tokens)
+- **API Style:** RESTful API with Spring MVC
+- **Build Tool:** Maven
 
 ### Frontend
 - **Framework:** React.js with Vite
@@ -35,8 +36,8 @@
 
 ### Additional Tools
 - **Version Control:** Git & GitHub
-- **API Documentation:** Swagger/OpenAPI (built-in with FastAPI)
-- **Testing:** Pytest (backend), Jest (frontend) - planned for Milestone 3
+- **API Documentation:** Spring REST Docs / Swagger (planned)
+- **Testing:** JUnit 5 + Spring Boot Test (backend), Jest (frontend) - planned for Milestone 3
 
 ---
 
@@ -94,46 +95,67 @@
 **Purpose:** Implement different expense splitting algorithms
 
 **Code Snippet:**
-```python
-# Interface
-class ISplitStrategy(ABC):
-    @abstractmethod
-    def split(self, amount: float, members: List[str], **kwargs) -> Dict[str, float]:
-        pass
+```java
+// Interface
+public interface ISplitStrategy {
+    Map<String, Double> split(Double amount, List<String> members, Map<String, Object> params);
+}
 
-# Concrete Strategy - Equal Split
-class EqualSplitStrategy(ISplitStrategy):
-    def split(self, amount: float, members: List[str], **kwargs) -> Dict[str, float]:
-        if not members:
-            return {}
-        per_person = amount / len(members)
-        return {member: per_person for member in members}
+// Concrete Strategy - Equal Split
+@Component
+public class EqualSplitStrategy implements ISplitStrategy {
+    @Override
+    public Map<String, Double> split(Double amount, List<String> members, Map<String, Object> params) {
+        if (members == null || members.isEmpty()) {
+            return new HashMap<>();
+        }
+        double perPerson = amount / members.size();
+        return members.stream()
+            .collect(Collectors.toMap(member -> member, member -> perPerson));
+    }
+}
 
-# Concrete Strategy - Percentage Split
-class PercentageSplitStrategy(ISplitStrategy):
-    def split(self, amount: float, members: List[str], **kwargs) -> Dict[str, float]:
-        percentages = kwargs.get('percentages', {})
-        if abs(sum(percentages.values()) - 100.0) > 0.01:
-            raise ValueError(f"Percentages must sum to 100")
-        return {member: (amount * percentages.get(member, 0) / 100.0) for member in members}
+// Concrete Strategy - Percentage Split
+@Component
+public class PercentageSplitStrategy implements ISplitStrategy {
+    @Override
+    public Map<String, Double> split(Double amount, List<String> members, Map<String, Object> params) {
+        Map<String, Double> percentages = (Map<String, Double>) params.get("percentages");
+        double total = percentages.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (Math.abs(total - 100.0) > 0.01) {
+            throw new IllegalArgumentException("Percentages must sum to 100");
+        }
+        return members.stream()
+            .collect(Collectors.toMap(member -> member, 
+                member -> amount * percentages.getOrDefault(member, 0.0) / 100.0));
+    }
+}
 
-# Factory for Strategy Selection
-class SplitStrategyFactory:
-    _strategies = {
-        'equal': EqualSplitStrategy(),
-        'percentage': PercentageSplitStrategy(),
-        'exact': ExactAmountSplitStrategy()
+// Factory for Strategy Selection
+@Service
+public class SplitStrategyFactory {
+    private final Map<String, ISplitStrategy> strategies;
+    
+    @Autowired
+    public SplitStrategyFactory(EqualSplitStrategy equalStrategy,
+                               PercentageSplitStrategy percentageStrategy,
+                               ExactAmountSplitStrategy exactStrategy) {
+        this.strategies = new HashMap<>();
+        strategies.put("equal", equalStrategy);
+        strategies.put("percentage", percentageStrategy);
+        strategies.put("exact", exactStrategy);
     }
     
-    @classmethod
-    def get_strategy(cls, split_type: str) -> ISplitStrategy:
-        return cls._strategies.get(split_type.lower())
+    public ISplitStrategy getStrategy(String splitType) {
+        return strategies.get(splitType.toLowerCase());
+    }
+}
 ```
 
 **Usage in Expense Creation:**
-```python
-strategy = SplitStrategyFactory.get_strategy(expense_data.split_type)
-splits = strategy.split(expense_data.amount, member_ids, **kwargs)
+```java
+ISplitStrategy strategy = splitStrategyFactory.getStrategy(expenseData.getSplitType());
+Map<String, Double> splits = strategy.split(expenseData.getAmount(), memberIds, params);
 ```
 
 ---
@@ -143,65 +165,86 @@ splits = strategy.split(expense_data.amount, member_ids, **kwargs)
 **Purpose:** Notify group members of events in real-time
 
 **Code Snippet:**
-```python
-# Observer Interface
-class IObserver(ABC):
-    @abstractmethod
-    def update(self, event: Dict[str, Any]):
-        pass
+```java
+// Observer Interface
+public interface IObserver {
+    void update(Map<String, Object> event);
+}
 
-# Concrete Observer
-class NotificationObserver(IObserver):
-    def __init__(self, db: Session):
-        self.db = db
+// Concrete Observer
+@Component
+public class NotificationObserver implements IObserver {
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
     
-    def update(self, event: Dict[str, Any]):
-        event_type = event.get('type')
-        if event_type == 'expense_added':
-            self._handle_expense_added(event)
-        elif event_type == 'member_added':
-            self._handle_member_added(event)
+    @Autowired
+    public NotificationObserver(NotificationRepository notificationRepository,
+                               UserRepository userRepository) {
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+    }
     
-    def _handle_expense_added(self, event: Dict[str, Any]):
-        group_members = event.get('group_members', [])
-        for member_id in group_members:
-            notification = Notification(
-                user_id=member_id,
-                message=f"{event['payer_name']} added expense '{event['expense_description']}'"
-            )
-            self.db.add(notification)
-        self.db.commit()
+    @Override
+    public void update(Map<String, Object> event) {
+        String eventType = (String) event.get("type");
+        if ("expense_added".equals(eventType)) {
+            handleExpenseAdded(event);
+        } else if ("member_added".equals(eventType)) {
+            handleMemberAdded(event);
+        }
+    }
+    
+    private void handleExpenseAdded(Map<String, Object> event) {
+        List<String> groupMembers = (List<String>) event.get("group_members");
+        for (String memberId : groupMembers) {
+            User user = userRepository.findById(memberId).orElse(null);
+            if (user != null) {
+                Notification notification = new Notification();
+                notification.setUser(user);
+                notification.setMessage(event.get("payer_name") + " added expense '" 
+                    + event.get("expense_description") + "'");
+                notification.setIsRead(false);
+                notificationRepository.save(notification);
+            }
+        }
+    }
+}
 
-# Subject (Singleton)
-class NotificationService:
-    _instance = None
+// Subject (Singleton via Spring @Service)
+@Service
+public class NotificationService {
+    private final List<IObserver> observers = new ArrayList<>();
     
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(NotificationService, cls).__new__(cls)
-            cls._instance.observers: List[IObserver] = []
-        return cls._instance
+    public void attach(IObserver observer) {
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
+    }
     
-    def attach(self, observer: IObserver):
-        if observer not in self.observers:
-            self.observers.append(observer)
-    
-    def notify(self, event: Dict[str, Any]):
-        for observer in self.observers:
-            observer.update(event)
+    public void notifyObservers(Map<String, Object> event) {
+        for (IObserver observer : observers) {
+            observer.update(event);
+        }
+    }
+}
 ```
 
 **Usage:**
-```python
-notification_service = NotificationService()
-observer = NotificationObserver(db)
-notification_service.attach(observer)
-notification_service.notify({
-    'type': 'expense_added',
-    'group_members': member_ids,
-    'payer_name': current_user.name,
-    'amount': expense_data.amount
-})
+```java
+@Autowired
+private NotificationService notificationService;
+
+@Autowired
+private NotificationObserver observer;
+
+// In service method
+notificationService.attach(observer);
+Map<String, Object> event = new HashMap<>();
+event.put("type", "expense_added");
+event.put("group_members", memberIds);
+event.put("payer_name", currentUser.getName());
+event.put("amount", expenseData.getAmount());
+notificationService.notifyObservers(event);
 ```
 
 ---
@@ -211,50 +254,67 @@ notification_service.notify({
 **Purpose:** Create different types of groups dynamically
 
 **Code Snippet:**
-```python
-# Factory Interface
-class IGroupFactory(ABC):
-    @abstractmethod
-    def create_group(self, name: str, description: str) -> Group:
-        pass
+```java
+// Factory Interface
+public interface IGroupFactory {
+    Group createGroup(String name, String description);
+}
 
-# Concrete Factories
-class TravelGroupFactory(IGroupFactory):
-    def create_group(self, name: str, description: str) -> Group:
-        return Group(
-            name=f"🌍 {name}",
-            description=description or "Travel expense group"
-        )
-
-class RoommateGroupFactory(IGroupFactory):
-    def create_group(self, name: str, description: str) -> Group:
-        return Group(
-            name=f"🏠 {name}",
-            description=description or "Roommate expense group"
-        )
-
-# Main Factory
-class GroupFactory:
-    _factories = {
-        'travel': TravelGroupFactory(),
-        'roommate': RoommateGroupFactory(),
-        'event': EventGroupFactory(),
-        'general': GeneralGroupFactory()
+// Main Factory with Inner Classes
+@Service
+public class GroupFactory {
+    
+    // Inner Factory Classes
+    private static class TravelGroupFactory implements IGroupFactory {
+        @Override
+        public Group createGroup(String name, String description) {
+            Group group = new Group();
+            group.setName("🌍 " + name);
+            group.setDescription(description != null ? description : "Travel expense group");
+            return group;
+        }
     }
     
-    @classmethod
-    def create_group(cls, group_type: str, name: str, description: str = "") -> Group:
-        factory = cls._factories.get(group_type.lower(), cls._factories['general'])
-        return factory.create_group(name, description)
+    private static class RoommateGroupFactory implements IGroupFactory {
+        @Override
+        public Group createGroup(String name, String description) {
+            Group group = new Group();
+            group.setName("🏠 " + name);
+            group.setDescription(description != null ? description : "Roommate expense group");
+            return group;
+        }
+    }
+    
+    private final Map<String, IGroupFactory> factories;
+    
+    public GroupFactory() {
+        this.factories = new HashMap<>();
+        factories.put("travel", new TravelGroupFactory());
+        factories.put("roommate", new RoommateGroupFactory());
+        factories.put("event", new EventGroupFactory());
+        factories.put("general", new GeneralGroupFactory());
+    }
+    
+    public Group createGroup(String groupType, String name, String description) {
+        IGroupFactory factory = factories.getOrDefault(
+            groupType.toLowerCase(), 
+            factories.get("general")
+        );
+        return factory.createGroup(name, description);
+    }
+}
 ```
 
 **Usage:**
-```python
-new_group = GroupFactory.create_group(
-    group_type="travel",
-    name="Europe Trip 2026",
-    description="Summer vacation expenses"
-)
+```java
+@Autowired
+private GroupFactory groupFactory;
+
+Group newGroup = groupFactory.createGroup(
+    "travel",
+    "Europe Trip 2026",
+    "Summer vacation expenses"
+);
 ```
 
 ---
@@ -264,31 +324,46 @@ new_group = GroupFactory.create_group(
 **Purpose:** Ensure single instance of critical resources
 
 **Code Snippet:**
-```python
-# Database Manager Singleton
-class DatabaseManager:
-    _instance = None
-    _engine = None
-    _session_local = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(DatabaseManager, cls).__new__(cls)
-            cls._engine = create_engine(settings.database_url)
-            cls._session_local = sessionmaker(bind=cls._engine)
-        return cls._instance
-    
-    def get_session(self) -> Session:
-        return self._session_local()
+```java
+// Singleton via Spring Framework
+// Spring's @Service, @Component, and @Repository annotations
+// create singleton beans by default
 
-# Notification Service Singleton (shown in Observer Pattern)
-# Command Manager Singleton (shown in Command Pattern)
+// NotificationService Singleton
+@Service
+public class NotificationService {
+    // Spring ensures only one instance exists
+    private final List<IObserver> observers = new ArrayList<>();
+    
+    public void attach(IObserver observer) {
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
+    }
+}
+
+// CommandManager Singleton
+@Service
+public class CommandManager {
+    // Spring ensures only one instance exists
+    private final Stack<ICommand> history = new Stack<>();
+    private final Stack<ICommand> redoStack = new Stack<>();
+    
+    public void execute(ICommand command) {
+        command.execute();
+        history.push(command);
+        redoStack.clear();
+    }
+}
 ```
 
 **Usage:**
-```python
-db_manager = DatabaseManager()  # Always returns same instance
-db = db_manager.get_session()
+```java
+@Autowired
+private NotificationService notificationService;  // Spring injects singleton
+
+@Autowired
+private CommandManager commandManager;  // Spring injects singleton
 ```
 
 ---
@@ -298,91 +373,87 @@ db = db_manager.get_session()
 **Purpose:** Enable undo/redo functionality for expense operations
 
 **Code Snippet:**
-```python
-# Command Interface
-class ICommand(ABC):
-    @abstractmethod
-    def execute(self):
-        pass
-    
-    @abstractmethod
-    def undo(self):
-        pass
+```java
+// Command Interface
+public interface ICommand {
+    void execute();
+    void undo();
+}
 
-# Concrete Command - Add Expense
-class AddExpenseCommand(ICommand):
-    def __init__(self, db: Session, expense_data: dict, splits_data: List[dict]):
-        self.db = db
-        self.expense_data = expense_data
-        self.splits_data = splits_data
-        self.expense_id: Optional[str] = None
+// Concrete Command - Add Expense (simplified example)
+public class AddExpenseCommand implements ICommand {
+    private final ExpenseRepository expenseRepository;
+    private final Expense expense;
+    private String expenseId;
     
-    def execute(self):
-        expense = Expense(**self.expense_data)
-        self.db.add(expense)
-        self.db.flush()
-        self.expense_id = expense.expense_id
-        
-        for split_data in self.splits_data:
-            split = ExpenseSplit(expense_id=self.expense_id, **split_data)
-            self.db.add(split)
-        
-        self.db.commit()
-        return self.expense_id
+    public AddExpenseCommand(ExpenseRepository repository, Expense expense) {
+        this.expenseRepository = repository;
+        this.expense = expense;
+    }
     
-    def undo(self):
-        if self.expense_id:
-            expense = self.db.query(Expense).filter(
-                Expense.expense_id == self.expense_id
-            ).first()
-            if expense:
-                self.db.delete(expense)
-                self.db.commit()
+    @Override
+    public void execute() {
+        Expense savedExpense = expenseRepository.save(expense);
+        this.expenseId = savedExpense.getExpenseId();
+    }
+    
+    @Override
+    public void undo() {
+        if (expenseId != null) {
+            expenseRepository.deleteById(expenseId);
+        }
+    }
+}
 
-# Command Manager (Singleton)
-class CommandManager:
-    _instance = None
+// Command Manager (Singleton via Spring)
+@Service
+public class CommandManager {
+    private final Stack<ICommand> history = new Stack<>();
+    private final Stack<ICommand> redoStack = new Stack<>();
     
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(CommandManager, cls).__new__(cls)
-            cls._instance.history: List[ICommand] = []
-            cls._instance.redo_stack: List[ICommand] = []
-        return cls._instance
+    public void execute(ICommand command) {
+        command.execute();
+        history.push(command);
+        redoStack.clear();
+    }
     
-    def execute(self, command: ICommand):
-        result = command.execute()
-        self.history.append(command)
-        self.redo_stack.clear()
-        return result
+    public void undo() {
+        if (history.isEmpty()) {
+            throw new IllegalStateException("No commands to undo");
+        }
+        ICommand command = history.pop();
+        command.undo();
+        redoStack.push(command);
+    }
     
-    def undo(self):
-        if not self.history:
-            raise ValueError("No commands to undo")
-        command = self.history.pop()
-        command.undo()
-        self.redo_stack.append(command)
-    
-    def redo(self):
-        if not self.redo_stack:
-            raise ValueError("No commands to redo")
-        command = self.redo_stack.pop()
-        result = command.execute()
-        self.history.append(command)
-        return result
+    public void redo() {
+        if (redoStack.isEmpty()) {
+            throw new IllegalStateException("No commands to redo");
+        }
+        ICommand command = redoStack.pop();
+        command.execute();
+        history.push(command);
+    }
+}
 ```
 
 **Usage:**
-```python
-command_manager = CommandManager()
-add_command = AddExpenseCommand(db, expense_dict, splits_data)
-expense_id = command_manager.execute(add_command)
+```java
+@Autowired
+private CommandManager commandManager;
 
-# Later, undo the operation
-command_manager.undo()
+@Autowired
+private ExpenseRepository expenseRepository;
 
-# Redo if needed
-command_manager.redo()
+// Create and execute command
+ICommand addCommand = new AddExpenseCommand(expenseRepository, expense);
+commandManager.execute(addCommand);
+
+// Later, undo the operation
+commandManager.undo();
+
+// Redo if needed
+commandManager.redo();
 ```
 
 ---
@@ -432,10 +503,10 @@ command_manager.redo()
 
 | Team Member        | Contribution                                                                                              |
 |--------------------|-----------------------------------------------------------------------------------------------------------|
-| **Gaurav Bakale**  | Backend API development, Strategy pattern implementation, Expense splitting logic, API documentation      |
+| **Gaurav Bakale**  | Java Spring Boot backend development, Strategy pattern implementation, Expense splitting logic, REST API design |
 | **Yu-Tzu Li**      | Frontend React components, UI/UX design with TailwindCSS, Dashboard and Groups pages, Authentication UI  |
-| **Rahul Sharma**   | Database schema design, Observer pattern implementation, Factory pattern, Notification system             |
-| **Karan Srinivas** | Authentication system with JWT, Command pattern implementation, Singleton patterns, Undo/Redo functionality |
+| **Rahul Sharma**   | JPA entity design, Observer pattern implementation, Factory pattern, Notification system             |
+| **Karan Srinivas** | Spring Security with JWT, Command pattern implementation, Singleton patterns, Undo/Redo functionality |
 
 ---
 
