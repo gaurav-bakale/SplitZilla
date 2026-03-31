@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
-import { Users, DollarSign, Bell } from 'lucide-react';
+import { Users, Bell, CheckCheck } from 'lucide-react';
 
 const Dashboard = () => {
   const [groups, setGroups] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [markingRead, setMarkingRead] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -25,6 +26,22 @@ const Dashboard = () => {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId) => {
+    setMarkingRead(notificationId);
+    try {
+      await api.put(`/api/notifications/${notificationId}/read`);
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.notification_id === notificationId ? { ...n, is_read: true } : n
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    } finally {
+      setMarkingRead(null);
     }
   };
 
@@ -65,10 +82,10 @@ const Dashboard = () => {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        Notifications
+                        Unread Notifications
                       </dt>
                       <dd className="text-3xl font-semibold text-gray-900">
-                        {notifications.length}
+                        {notifications.filter((n) => !n.is_read).length}
                       </dd>
                     </dl>
                   </div>
@@ -125,12 +142,28 @@ const Dashboard = () => {
                   {notifications.map((notification) => (
                     <div
                       key={notification.notification_id}
-                      className="p-3 bg-gray-50 rounded-lg"
+                      className={`p-3 rounded-lg flex justify-between items-start gap-3 ${
+                        notification.is_read ? 'bg-gray-50' : 'bg-indigo-50 border border-indigo-100'
+                      }`}
                     >
-                      <p className="text-sm text-gray-700">{notification.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(notification.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm ${notification.is_read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(notification.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      {!notification.is_read && (
+                        <button
+                          onClick={() => handleMarkAsRead(notification.notification_id)}
+                          disabled={markingRead === notification.notification_id}
+                          className="flex-shrink-0 text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+                          title="Mark as read"
+                        >
+                          <CheckCheck className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
