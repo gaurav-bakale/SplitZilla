@@ -73,24 +73,11 @@ public class ExpenseService {
     public Map<String, Object> getBalancesForGroup(String groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
-        List<Expense> expenses = expenseRepository.findByGroupGroupId(groupId);
-
-        Map<String, Double> balanceMap = new HashMap<>();
+        Map<String, Double> balanceMap = calculateBalanceMap(groupId, group);
         Map<String, String> nameMap = new HashMap<>();
 
         for (User member : group.getMembers()) {
-            balanceMap.put(member.getUserId(), 0.0);
             nameMap.put(member.getUserId(), member.getName());
-        }
-
-        for (Expense expense : expenses) {
-            String payerId = expense.getPayer().getUserId();
-            balanceMap.merge(payerId, expense.getAmount(), Double::sum);
-
-            for (ExpenseSplit split : expense.getSplits()) {
-                String userId = split.getUser().getUserId();
-                balanceMap.merge(userId, -split.getAmount(), Double::sum);
-            }
         }
 
         List<Map<String, Object>> balances = new ArrayList<>();
@@ -105,5 +92,26 @@ public class ExpenseService {
         Map<String, Object> result = new HashMap<>();
         result.put("balances", balances);
         return result;
+    }
+
+    private Map<String, Double> calculateBalanceMap(String groupId, Group group) {
+        List<Expense> expenses = expenseRepository.findByGroupGroupId(groupId);
+        Map<String, Double> balanceMap = new HashMap<>();
+
+        for (User member : group.getMembers()) {
+            balanceMap.put(member.getUserId(), 0.0);
+        }
+
+        for (Expense expense : expenses) {
+            String payerId = expense.getPayer().getUserId();
+            balanceMap.merge(payerId, expense.getAmount(), Double::sum);
+
+            for (ExpenseSplit split : expense.getSplits()) {
+                String userId = split.getUser().getUserId();
+                balanceMap.merge(userId, -split.getAmount(), Double::sum);
+            }
+        }
+
+        return balanceMap;
     }
 }

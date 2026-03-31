@@ -44,48 +44,48 @@ public class Group {
 
     public Group(String groupId, String name, String description, LocalDateTime createdAt,
                  Set<User> members, Set<Expense> expenses) {
-        this.groupId = groupId;
-        this.name = name;
-        this.description = description;
-        this.createdAt = createdAt;
-        this.members = members;
-        this.expenses = expenses;
+        this.groupId = groupId; 
+        this.name = name; 
+        this.description = description; 
+        this.createdAt = createdAt; 
+        this.members = members; 
+        this.expenses = expenses; 
     }
 
     public String getGroupId() {
-        return groupId;
+        return groupId; 
     }
 
     public void setGroupId(String groupId) {
-        this.groupId = groupId;
+        this.groupId = groupId; 
     }
 
     public String getName() {
-        return name;
+        return name; 
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name; 
     }
 
     public String getDescription() {
-        return description;
-    }
+        return description; 
+    } 
 
     public void setDescription(String description) {
         this.description = description;
-    }
+    } 
 
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return createdAt; 
     }
-
+ 
     public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+        this.createdAt = createdAt; 
     }
 
     public Set<User> getMembers() {
-        return members;
+        return members; 
     }
 
     public void setMembers(Set<User> members) {
@@ -95,8 +95,9 @@ public class Group {
     public Set<Expense> getExpenses() {
         return expenses;
     }
-
+ 
     public void setExpenses(Set<Expense> expenses) {
         this.expenses = expenses;
-    }
+    } 
 }
+  

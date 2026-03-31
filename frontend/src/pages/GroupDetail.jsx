@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
-import { Plus, Users, DollarSign } from 'lucide-react';
+import { Plus, Users, DollarSign, CheckCircle2 } from 'lucide-react';
 
 const GroupDetail = () => {
   const { groupId } = useParams();
   const [group, setGroup] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [balances, setBalances] = useState(null);
+  const [settlementOverview, setSettlementOverview] = useState(null);
+  const [settlementError, setSettlementError] = useState('');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [expenseData, setExpenseData] = useState({
@@ -17,6 +19,7 @@ const GroupDetail = () => {
     split_type: 'equal'
   });
   const [memberEmail, setMemberEmail] = useState('');
+  const [settlingKey, setSettlingKey] = useState('');
 
   useEffect(() => {
     if (groupId) {
@@ -26,16 +29,55 @@ const GroupDetail = () => {
 
   const fetchGroupData = async () => {
     try {
-      const [groupRes, expensesRes, balancesRes] = await Promise.all([
+      const [groupRes, expensesRes, balancesRes, settlementsRes] = await Promise.allSettled([
         api.get(`/api/groups/${groupId}`),
         api.get(`/api/expenses/group/${groupId}`),
-        api.get(`/api/expenses/balances/group/${groupId}`)
+        api.get(`/api/expenses/balances/group/${groupId}`),
+        api.get(`/api/settlements/group/${groupId}`)
       ]);
-      setGroup(groupRes.data);
-      setExpenses(expensesRes.data);
-      setBalances(balancesRes.data);
+
+      if (groupRes.status !== 'fulfilled' || expensesRes.status !== 'fulfilled' || balancesRes.status !== 'fulfilled') {
+        throw new Error('Failed to load core group data');
+      }
+
+      setGroup(groupRes.value.data);
+      setExpenses(expensesRes.value.data);
+      setBalances(balancesRes.value.data);
+
+      if (settlementsRes.status === 'fulfilled') {
+        setSettlementOverview(settlementsRes.value.data);
+        setSettlementError('');
+      } else {
+        setSettlementOverview(null);
+        const statusCode = settlementsRes.reason?.response?.status;
+        const backendMessage = settlementsRes.reason?.response?.data?.error;
+        setSettlementError(
+          backendMessage ||
+          (statusCode === 403
+            ? 'Settlement data is unavailable for this group right now.'
+            : 'Unable to load settlement suggestions right now.')
+        );
+      }
     } catch (error) {
       console.error('Error fetching group data:', error);
+    }
+  };
+
+  const handleRecordSettlement = async (suggestion) => {
+    const settlementKey = `${suggestion.payer_id}-${suggestion.payee_id}-${suggestion.amount}`;
+    setSettlingKey(settlementKey);
+    try {
+      await api.post(`/api/settlements/group/${groupId}/record`, {
+        payer_id: suggestion.payer_id,
+        payee_id: suggestion.payee_id,
+        amount: suggestion.amount,
+      });
+      fetchGroupData();
+    } catch (error) {
+      console.error('Error recording settlement:', error);
+      alert(error.response?.data?.error || 'Failed to record settlement');
+    } finally {
+      setSettlingKey('');
     }
   };
 
@@ -117,6 +159,82 @@ const GroupDetail = () => {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <DollarSign className="w-5 h-5 text-emerald-600 mr-2" />
+                <h2 className="text-xl font-semibold text-gray-900">Settle Up</h2>
+              </div>
+              {settlementError ? (
+                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  {settlementError}
+                </p>
+              ) : settlementOverview?.suggestions?.length ? (
+                <div className="space-y-3">
+                  {settlementOverview.suggestions.map((suggestion) => {
+                    const settlementKey = `${suggestion.payer_id}-${suggestion.payee_id}-${suggestion.amount}`;
+                    return (
+                      <div
+                        key={settlementKey}
+                        className="border border-emerald-100 bg-emerald-50 rounded-lg p-4"
+                      >
+                        <p className="text-sm text-gray-800">
+                          <span className="font-semibold">{suggestion.payer_name}</span>
+                          {' '}pays{' '}
+                          <span className="font-semibold">{suggestion.payee_name}</span>
+                          {' '}to settle up.
+                        </p>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-lg font-semibold text-emerald-700">
+                            ${suggestion.amount.toFixed(2)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRecordSettlement(suggestion)}
+                            disabled={settlingKey === settlementKey}
+                            className="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            {settlingKey === settlementKey ? 'Recording...' : 'Mark Settled'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-gray-500">Everyone is settled up right now.</p>
+              )}
+            </div>
+
+            <div className="bg-white shadow rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Settlement History</h2>
+              {settlementOverview?.completed_settlements?.length ? (
+                <div className="space-y-3">
+                  {settlementOverview.completed_settlements.map((settlement) => (
+                    <div key={settlement.settlement_id} className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-800">
+                        <span className="font-semibold">{settlement.payer_name}</span>
+                        {' '}paid{' '}
+                        <span className="font-semibold">{settlement.payee_name}</span>
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-sm">
+                        <span className="font-semibold text-gray-900">
+                          ${settlement.amount.toFixed(2)}
+                        </span>
+                        <span className="text-gray-500">
+                          {new Date(settlement.settled_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No settlements recorded yet.</p>
               )}
             </div>
           </div>
