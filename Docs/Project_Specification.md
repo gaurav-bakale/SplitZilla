@@ -158,10 +158,10 @@ Managing shared expenses among friends, roommates, or travel groups is often cha
 ## Tech Stack
 
 ### Backend
-- **Framework:** Python + FastAPI
+- **Framework:** Java + Spring Boot
 - **Database:** PostgreSQL
-- **ORM:** SQLAlchemy
-- **Authentication:** JWT (JSON Web Tokens)
+- **ORM:** Spring Data JPA / Hibernate
+- **Authentication:** JWT (JSON Web Tokens) with Spring Security
 - **API Style:** RESTful API
 
 ### Frontend
@@ -172,8 +172,9 @@ Managing shared expenses among friends, roommates, or travel groups is often cha
 
 ### Additional Tools
 - **Version Control:** Git & GitHub
-- **API Documentation:** Swagger/OpenAPI (built-in with FastAPI)
-- **Testing:** Pytest (backend), Jest (frontend)
+- **API Documentation:** Swagger/OpenAPI (SpringDoc)
+- **Testing:** JUnit 5 + Mockito (backend), Jest (frontend)
+- **Build Tool:** Maven / Gradle
 
 ---
 
