@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import DatabaseManager
-from app.routes import auth, groups, expenses, notifications
+from app.routes import auth, groups, expenses, notifications, health
 
 app = FastAPI(
     title="SplitZilla API",
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(groups.router)
 app.include_router(expenses.router)
 app.include_router(notifications.router)
+app.include_router(health.router)
 
 @app.get("/")
 def root():
@@ -32,7 +33,3 @@ def root():
         "version": "1.0.0",
         "docs": "/docs"
     }
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
