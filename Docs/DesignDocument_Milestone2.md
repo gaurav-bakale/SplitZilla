@@ -42,15 +42,15 @@
 - Each factory adds type-specific prefixes and default descriptions
 
 ### 1.4 Singleton Pattern
-**Problem Solved:** Multiple database connections or notification service instances would cause resource wastage and inconsistent state management.
+**Problem Solved:** Multiple service instances would cause resource wastage and inconsistent state management.
 
 **Solution:** The Singleton pattern ensures only one instance of critical resources exists throughout the application lifecycle.
 
 **Implementation:**
-- `DatabaseManager` singleton manages database connections and session creation
 - `NotificationService` singleton manages observer registration
 - `CommandManager` singleton maintains command history for undo/redo operations
-- Thread-safe implementation using Python's `__new__` method
+- Implemented via Spring Framework's dependency injection (@Service annotation)
+- Spring ensures singleton scope by default for all beans
 
 ### 1.5 Command Pattern
 **Problem Solved:** Users need the ability to undo/redo expense operations, requiring encapsulation of operations as objects with reversible actions.
@@ -78,14 +78,14 @@ The system follows a **three-tier architecture**:
    - Handles user authentication tokens
 
 2. **Application Layer (Backend)**
-   - FastAPI REST API server
+   - Spring Boot REST API server
    - Implements business logic and design patterns
-   - Handles authentication and authorization
+   - Handles authentication and authorization with Spring Security
    - Processes requests and returns JSON responses
 
 3. **Data Layer (Database)**
-   - SQLite database (development) / PostgreSQL (production)
-   - SQLAlchemy ORM for database operations
+   - H2 database (development) / PostgreSQL (production)
+   - Spring Data JPA with Hibernate for database operations
    - Stores users, groups, expenses, splits, and notifications
 
 ### 2.2 Data Flow

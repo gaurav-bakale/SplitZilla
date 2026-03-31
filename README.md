@@ -1,6 +1,6 @@
 # SplitZilla - Collaborative Expense Splitting Application
 
-A modern, full-stack expense splitting application built with FastAPI and React, implementing 5 core design patterns.
+A modern, full-stack expense splitting application built with Java Spring Boot and React, implementing 5 core design patterns.
 
 ## 🎯 Project Overview
 
@@ -26,11 +26,12 @@ SplitZilla simplifies shared expense management among friends, roommates, or tra
 ### Tech Stack
 
 **Backend:**
-- FastAPI (Python)
-- SQLAlchemy ORM
-- SQLite/PostgreSQL
-- JWT Authentication
-- Bcrypt password hashing
+- Java 17
+- Spring Boot 3.2.0
+- Spring Data JPA with Hibernate
+- H2 Database (development) / PostgreSQL (production)
+- Spring Security with JWT Authentication
+- Maven
 
 **Frontend:**
 - React.js
@@ -43,40 +44,30 @@ SplitZilla simplifies shared expense management among friends, roommates, or tra
 
 ### Prerequisites
 
-- Python 3.9+
+- Java 17 or higher
+- Maven 3.6+
 - Node.js 16+
 - npm or yarn
 
 ### Backend Setup
 
-1. Navigate to backend directory:
+1. Navigate to backend-java directory:
 ```bash
-cd backend
+cd backend-java
 ```
 
-2. Create virtual environment:
+2. Build the project:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+mvn clean install
 ```
 
-3. Install dependencies:
+3. Run the server:
 ```bash
-pip install -r requirements.txt
-```
-
-4. Create `.env` file:
-```bash
-cp .env.example .env
-```
-
-5. Run the server:
-```bash
-uvicorn app.main:app --reload --port 8000
+mvn spring-boot:run
 ```
 
 The API will be available at `http://localhost:8000`  
-API Documentation: `http://localhost:8000/docs`
+H2 Console: `http://localhost:8000/h2-console`
 
 ### Frontend Setup
 
