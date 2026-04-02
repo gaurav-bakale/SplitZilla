@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
-import { Plus, Users, DollarSign, CheckCircle2, Search, ArrowRight, WalletCards, Activity, Orbit } from 'lucide-react';
+import { Plus, Users, DollarSign, CheckCircle2, Search, ArrowRight, WalletCards, Activity, Orbit, TimerReset, Loader } from 'lucide-react';
 
 const GroupDetail = () => {
   const { groupId } = useParams();
@@ -21,8 +21,10 @@ const GroupDetail = () => {
     split_type: 'equal'
   });
   const [memberEmail, setMemberEmail] = useState('');
-  const [settlingKey, setSettlingKey] = useState('');
   const [expenseSearch, setExpenseSearch] = useState('');
+  const [creatingPlan, setCreatingPlan] = useState(false);
+  const [payingSettlementId, setPayingSettlementId] = useState('');
+  const [paymentInputs, setPaymentInputs] = useState({});
 
   useEffect(() => {
     if (groupId) {
@@ -71,21 +73,43 @@ const GroupDetail = () => {
     }
   };
 
-  const handleRecordSettlement = async (suggestion) => {
-    const settlementKey = `${suggestion.payer_id}-${suggestion.payee_id}-${suggestion.amount}`;
-    setSettlingKey(settlementKey);
+  const handleCreateSettlementPlan = async () => {
+    setCreatingPlan(true);
     try {
-      await api.post(`/api/settlements/group/${groupId}/record`, {
-        payer_id: suggestion.payer_id,
-        payee_id: suggestion.payee_id,
-        amount: suggestion.amount,
-      });
-      fetchGroupData();
+      await api.post(`/api/settlements/group/${groupId}/plans`);
+      await fetchGroupData();
     } catch (error) {
-      console.error('Error recording settlement:', error);
-      alert(error.response?.data?.error || 'Failed to record settlement');
+      console.error('Error creating settlement plan:', error);
+      alert(error.response?.data?.error || 'Failed to create settlement plan');
     } finally {
-      setSettlingKey('');
+      setCreatingPlan(false);
+    }
+  };
+
+  const handleRecordPayment = async (settlement) => {
+    const rawAmount = paymentInputs[settlement.settlement_id] ?? settlement.outstanding_amount;
+    const amount = parseFloat(rawAmount);
+
+    if (!amount || amount <= 0) {
+      alert('Enter a payment amount greater than 0');
+      return;
+    }
+
+    setPayingSettlementId(settlement.settlement_id);
+    try {
+      await api.post(`/api/settlements/group/${groupId}/${settlement.settlement_id}/payments`, {
+        amount,
+      });
+      setPaymentInputs((current) => ({
+        ...current,
+        [settlement.settlement_id]: '',
+      }));
+      await fetchGroupData();
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      alert(error.response?.data?.error || 'Failed to record payment');
+    } finally {
+      setPayingSettlementId('');
     }
   };
 
@@ -105,6 +129,12 @@ const GroupDetail = () => {
       alert('Failed to add expense');
     }
   };
+
+  const formatCurrency = (amount) => `$${Number(amount || 0).toFixed(2)}`;
+
+  const activeSettlements = settlementOverview?.active_settlements || [];
+  const recommendedPlan = settlementOverview?.recommended_plan || settlementOverview?.suggestions || [];
+  const settlementMetrics = settlementOverview?.metrics || {};
 
   const handleAddMember = async (e) => {
     e.preventDefault();
@@ -148,41 +178,39 @@ const GroupDetail = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Navbar />
-      <div className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.14),transparent_28%),radial-gradient(circle_at_72%_18%,rgba(168,85,247,0.14),transparent_22%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.08),transparent_28%)]" />
+      <div className="relative">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-8 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(92,225,230,0.06),transparent_35%,rgba(168,85,247,0.08)_70%,transparent)]" />
+          <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
             <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
               <div>
-                <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
-                  Group Workspace
+                <span className="inline-flex items-center rounded-full border border-sky-500/20 bg-sky-500/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-sky-300">
+                  Group
                 </span>
-                <h1 className="mt-6 font-['Orbitron'] text-4xl font-bold uppercase tracking-[0.12em] text-slate-50 sm:text-5xl">
+                <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl">
                   {group.name}
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-                  {group.description || 'Track shared expenses, guide settlements, and monitor every move inside this group orbit.'}
+                  {group.description || 'Track shared expenses, review balances, and manage settlements.'}
                 </p>
               </div>
 
               <div className="grid gap-4 self-end">
-                <div className="rounded-[1.5rem] border border-cyan-400/10 bg-slate-950/45 p-5">
+                <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Members Online</p>
-                      <p className="mt-2 font-['Orbitron'] text-3xl font-bold text-slate-100">{group.members?.length || 0}</p>
+                      <p className="mt-2 text-3xl font-semibold text-slate-100">{group.members?.length || 0}</p>
                     </div>
-                    <Users className="h-5 w-5 text-cyan-300" />
+                    <Users className="h-5 w-5 text-sky-300" />
                   </div>
                 </div>
-                <div className="rounded-[1.5rem] border border-cyan-400/10 bg-slate-950/45 p-5">
+                <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Expense Feed</p>
                       <p className="mt-2 text-lg font-semibold text-slate-100">{expenses.length} records tracked</p>
                     </div>
-                    <Activity className="h-5 w-5 text-fuchsia-300" />
+                    <Activity className="h-5 w-5 text-slate-300" />
                   </div>
                 </div>
               </div>
@@ -190,43 +218,43 @@ const GroupDetail = () => {
           </div>
 
           <div className="mb-8 mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="font-['Orbitron'] text-xl font-bold uppercase tracking-[0.12em] text-slate-100">Members</h2>
+                  <h2 className="text-xl font-semibold text-slate-100">Members</h2>
                   <p className="mt-2 text-sm text-slate-400">Everyone currently inside this expense orbit.</p>
                 </div>
                 <button
                   onClick={() => setShowMemberModal(true)}
-                  className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-cyan-300 transition hover:border-cyan-400/40 hover:text-white"
+                  className="rounded-2xl border border-slate-700 bg-slate-950 p-3 text-sky-300 transition hover:border-slate-600 hover:text-white"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
               <div className="space-y-2">
                 {group.members?.map((member) => (
-                  <div key={member.user_id} className="flex items-center rounded-2xl border border-cyan-400/10 bg-slate-950/35 p-3">
-                    <Users className="mr-3 h-4 w-4 text-cyan-300" />
+                  <div key={member.user_id} className="flex items-center rounded-2xl border border-slate-800 bg-slate-950 p-3">
+                    <Users className="mr-3 h-4 w-4 text-sky-300" />
                     <span className="text-sm text-slate-200">{member.name}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl lg:col-span-2">
+            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)] lg:col-span-2">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="font-['Orbitron'] text-xl font-bold uppercase tracking-[0.12em] text-slate-100">Balances</h2>
+                  <h2 className="text-xl font-semibold text-slate-100">Balances</h2>
                   <p className="mt-2 text-sm text-slate-400">See who owes, who is ahead, and where the group stands.</p>
                 </div>
-                <span className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-emerald-300">
+                <span className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sky-300">
                   <DollarSign className="h-5 w-5" />
                 </span>
               </div>
               {balances && (
                 <div className="space-y-2">
                   {balances.balances?.map((balance) => (
-                    <div key={balance.user_id} className="flex items-center justify-between rounded-2xl border border-cyan-400/10 bg-slate-950/35 p-4">
+                    <div key={balance.user_id} className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950 p-4">
                       <span className="text-sm font-medium text-slate-200">{balance.user_name}</span>
                       <span className={`text-sm font-semibold ${balance.balance >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
                         ${Math.abs(balance.balance).toFixed(2)} {balance.balance >= 0 ? 'gets back' : 'owes'}
@@ -238,14 +266,14 @@ const GroupDetail = () => {
             </div>
           </div>
 
-          <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="font-['Orbitron'] text-xl font-bold uppercase tracking-[0.12em] text-slate-100">Settle Up</h2>
-                  <p className="mt-2 text-sm text-slate-400">Minimal payment paths to bring everyone back to zero.</p>
+                  <h2 className="text-xl font-semibold text-slate-100">Settlement Orchestration</h2>
+                  <p className="mt-2 text-sm text-slate-400">Generate transfer plans, record partial payments, and track reimbursements until the group is closed out.</p>
                 </div>
-                <span className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-emerald-300">
+                <span className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sky-300">
                   <Orbit className="h-5 w-5" />
                 </span>
               </div>
@@ -253,58 +281,173 @@ const GroupDetail = () => {
                 <p className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
                   {settlementError}
                 </p>
-              ) : settlementOverview?.suggestions?.length ? (
-                <div className="space-y-3">
-                  {settlementOverview.suggestions.map((suggestion) => {
-                    const settlementKey = `${suggestion.payer_id}-${suggestion.payee_id}-${suggestion.amount}`;
-                    return (
-                      <div
-                        key={settlementKey}
-                        className="rounded-[1.5rem] border border-emerald-400/15 bg-emerald-400/10 p-4"
-                      >
-                        <p className="text-sm text-slate-100">
-                          <span className="font-semibold">{suggestion.payer_name}</span>
-                          {' '}pays{' '}
-                          <span className="font-semibold">{suggestion.payee_name}</span>
-                          {' '}to settle up.
-                        </p>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-lg font-semibold text-emerald-300">
-                            ${suggestion.amount.toFixed(2)}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRecordSettlement(suggestion)}
-                            disabled={settlingKey === settlementKey}
-                            className="inline-flex items-center rounded-full bg-emerald-400 px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] text-slate-950 transition hover:bg-emerald-300 disabled:opacity-50"
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            {settlingKey === settlementKey ? 'Recording...' : 'Mark Settled'}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
               ) : (
-                <p className="text-slate-400">Everyone is settled up right now.</p>
+                <div className="space-y-6">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Open Transfers</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-100">{settlementMetrics.open_transfers || 0}</p>
+                    </div>
+                    <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Outstanding</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-100">{formatCurrency(settlementMetrics.total_outstanding)}</p>
+                    </div>
+                    <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Paid Through</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-100">{formatCurrency(settlementMetrics.total_paid)}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-100">Recommended transfer plan</h3>
+                        <p className="mt-2 text-sm text-slate-400">
+                          {activeSettlements.length
+                            ? 'An active plan already exists. Continue recording payments until it is complete.'
+                            : recommendedPlan.length
+                              ? 'Generate the optimized transfer set below to start reimbursement tracking.'
+                              : 'No additional transfer plan is needed right now.'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCreateSettlementPlan}
+                        disabled={creatingPlan || activeSettlements.length > 0 || !recommendedPlan.length}
+                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {creatingPlan ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <TimerReset className="mr-2 h-4 w-4" />}
+                        {creatingPlan ? 'Generating...' : 'Generate Plan'}
+                      </button>
+                    </div>
+
+                    {recommendedPlan.length > 0 ? (
+                      <div className="mt-5 space-y-3">
+                        {recommendedPlan.map((suggestion) => (
+                          <div
+                            key={`${suggestion.payer_id}-${suggestion.payee_id}-${suggestion.amount}`}
+                            className="rounded-[1.25rem] border border-slate-800 bg-slate-900 p-4"
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <p className="text-sm text-slate-100">
+                                <span className="font-semibold">{suggestion.payer_name}</span>
+                                {' '}pays{' '}
+                                <span className="font-semibold">{suggestion.payee_name}</span>
+                              </p>
+                              <span className="text-sm font-semibold text-slate-200">{formatCurrency(suggestion.amount)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-5 text-sm text-slate-400">Everything is already reconciled or covered by active transfers.</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-100">Active reimbursements</h3>
+                        <p className="mt-2 text-sm text-slate-400">Track payment progress against each orchestrated transfer.</p>
+                      </div>
+                      <span className="rounded-2xl border border-slate-800 bg-slate-900 p-3 text-sky-300">
+                        <WalletCards className="h-5 w-5" />
+                      </span>
+                    </div>
+
+                    {activeSettlements.length ? (
+                      <div className="mt-5 space-y-4">
+                        {activeSettlements.map((settlement) => (
+                          <div key={settlement.settlement_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-900 p-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div>
+                                <p className="text-sm text-slate-100">
+                                  <span className="font-semibold">{settlement.payer_name}</span>
+                                  {' '}pays{' '}
+                                  <span className="font-semibold">{settlement.payee_name}</span>
+                                </p>
+                                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 uppercase tracking-[0.18em] text-sky-300">
+                                    {settlement.status}
+                                  </span>
+                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">
+                                    Planned {formatCurrency(settlement.amount)}
+                                  </span>
+                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">
+                                    Paid {formatCurrency(settlement.paid_amount)}
+                                  </span>
+                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">
+                                    Outstanding {formatCurrency(settlement.outstanding_amount)}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="w-full max-w-xs">
+                                <div className="flex items-center justify-between text-xs text-slate-400">
+                                  <span>Progress</span>
+                                  <span>{Number(settlement.progress_percent).toFixed(0)}%</span>
+                                </div>
+                                <div className="mt-2 h-2 rounded-full bg-slate-800">
+                                  <div
+                                    className="h-2 rounded-full bg-sky-400 transition-all"
+                                    style={{ width: `${Math.min(Number(settlement.progress_percent) || 0, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                              <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={paymentInputs[settlement.settlement_id] ?? settlement.outstanding_amount}
+                                onChange={(e) =>
+                                  setPaymentInputs((current) => ({
+                                    ...current,
+                                    [settlement.settlement_id]: e.target.value,
+                                  }))
+                                }
+                                className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/30 md:max-w-[200px]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRecordPayment(settlement)}
+                                disabled={payingSettlementId === settlement.settlement_id}
+                                className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {payingSettlementId === settlement.settlement_id ? (
+                                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                                )}
+                                {payingSettlementId === settlement.settlement_id ? 'Recording...' : 'Record Payment'}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-5 text-sm text-slate-400">No active reimbursement plan yet.</p>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
-            <div className="rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="font-['Orbitron'] text-xl font-bold uppercase tracking-[0.12em] text-slate-100">Settlement History</h2>
+                  <h2 className="text-xl font-semibold text-slate-100">Settlement History</h2>
                   <p className="mt-2 text-sm text-slate-400">Recorded payment completions inside this group.</p>
                 </div>
-                <span className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-400/10 p-3 text-fuchsia-300">
+                <span className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sky-300">
                   <WalletCards className="h-5 w-5" />
                 </span>
               </div>
               {settlementOverview?.completed_settlements?.length ? (
                 <div className="space-y-3">
                   {settlementOverview.completed_settlements.map((settlement) => (
-                    <div key={settlement.settlement_id} className="rounded-[1.5rem] border border-cyan-400/10 bg-slate-950/35 p-4">
+                    <div key={settlement.settlement_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
                       <p className="text-sm text-slate-100">
                         <span className="font-semibold">{settlement.payer_name}</span>
                         {' '}paid{' '}
@@ -312,7 +455,7 @@ const GroupDetail = () => {
                       </p>
                       <div className="mt-2 flex items-center justify-between text-sm">
                         <span className="font-semibold text-slate-100">
-                          ${settlement.amount.toFixed(2)}
+                          {formatCurrency(settlement.amount)}
                         </span>
                         <span className="text-slate-500">
                           {new Date(settlement.settled_at).toLocaleDateString()}
@@ -327,15 +470,15 @@ const GroupDetail = () => {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="font-['Orbitron'] text-xl font-bold uppercase tracking-[0.12em] text-slate-100">Expenses</h2>
+                <h2 className="text-xl font-semibold text-slate-100">Expenses</h2>
                 <p className="mt-2 text-sm text-slate-400">Search and review every spend event tied to this group.</p>
               </div>
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="inline-flex items-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-cyan-300"
+                className="inline-flex items-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Expense
@@ -348,7 +491,7 @@ const GroupDetail = () => {
                 placeholder="Search expenses..."
                 value={expenseSearch}
                 onChange={(e) => setExpenseSearch(e.target.value)}
-                className="w-full rounded-2xl border border-cyan-400/10 bg-slate-950/60 py-3 pl-11 pr-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                className="w-full rounded-2xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/30"
               />
             </div>
             <div className="space-y-3">
@@ -357,7 +500,7 @@ const GroupDetail = () => {
                   expense.description.toLowerCase().includes(expenseSearch.toLowerCase())
                 )
                 .map((expense) => (
-                <div key={expense.expense_id} className="rounded-[1.5rem] border border-cyan-400/10 bg-slate-950/35 p-4">
+                <div key={expense.expense_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-medium text-slate-100">{expense.description}</h3>
@@ -365,7 +508,7 @@ const GroupDetail = () => {
                         Split: {expense.split_type} | {new Date(expense.date).toLocaleDateString()}
                       </p>
                       {expense.paid_by_name && (
-                        <p className="mt-1 text-sm text-cyan-300">
+                        <p className="mt-1 text-sm text-sky-300">
                           Paid by {expense.paid_by_name}
                         </p>
                       )}
@@ -402,13 +545,13 @@ const GroupDetail = () => {
                         <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
                           New Expense
                         </span>
-                        <h3 className="mt-5 font-['Orbitron'] text-2xl font-bold uppercase tracking-[0.12em] text-slate-100">
-                          Add Expense Event
+                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-100">
+                          Add expense
                         </h3>
                       </div>
                       <div className="space-y-5">
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.28em] text-slate-400">Description</label>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Description</label>
                           <input
                             type="text"
                             required
@@ -418,7 +561,7 @@ const GroupDetail = () => {
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.28em] text-slate-400">Amount</label>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Amount</label>
                           <input
                             type="number"
                             step="0.01"
@@ -429,7 +572,7 @@ const GroupDetail = () => {
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.28em] text-slate-400">Split Type</label>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Split Type</label>
                           <select
                             className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
                             value={expenseData.split_type}
@@ -445,14 +588,14 @@ const GroupDetail = () => {
                     <div className="relative flex flex-col-reverse gap-3 border-t border-cyan-400/10 bg-slate-950/60 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-cyan-300"
+                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
                       >
-                        Add
+                        Save expense
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowExpenseModal(false)}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium uppercase tracking-[0.18em] text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
+                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
                       >
                         Cancel
                       </button>
@@ -478,12 +621,12 @@ const GroupDetail = () => {
                         <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
                           Invite Member
                         </span>
-                        <h3 className="mt-5 font-['Orbitron'] text-2xl font-bold uppercase tracking-[0.12em] text-slate-100">
-                          Expand The Group
+                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-100">
+                          Add member
                         </h3>
                       </div>
                       <div>
-                        <label className="mb-2 block text-xs uppercase tracking-[0.28em] text-slate-400">Member Email</label>
+                        <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Member Email</label>
                         <input
                           type="email"
                           required
@@ -496,14 +639,14 @@ const GroupDetail = () => {
                     <div className="relative flex flex-col-reverse gap-3 border-t border-cyan-400/10 bg-slate-950/60 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-cyan-300"
+                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
                       >
-                        Add
+                        Add member
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowMemberModal(false)}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium uppercase tracking-[0.18em] text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
+                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
                       >
                         Cancel
                       </button>

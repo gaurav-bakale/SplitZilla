@@ -33,8 +33,21 @@ public class Settlement {
     @Column(nullable = false)
     private Double amount;
 
+    @Column(name = "paid_amount", nullable = false)
+    private Double paidAmount = 0.0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SettlementStatus status = SettlementStatus.PENDING;
+
     @CreationTimestamp
-    @Column(name = "settled_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "last_payment_at")
+    private LocalDateTime lastPaymentAt;
+
+    @Column(name = "settled_at")
     private LocalDateTime settledAt;
 
     public Settlement() {
@@ -78,6 +91,38 @@ public class Settlement {
 
     public void setAmount(Double amount) {
         this.amount = amount;
+    }
+
+    public Double getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(Double paidAmount) {
+        this.paidAmount = paidAmount;
+    }
+
+    public SettlementStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SettlementStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getLastPaymentAt() {
+        return lastPaymentAt;
+    }
+
+    public void setLastPaymentAt(LocalDateTime lastPaymentAt) {
+        this.lastPaymentAt = lastPaymentAt;
     }
 
     public LocalDateTime getSettledAt() {

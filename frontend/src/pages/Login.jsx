@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Shield, Sparkles, WalletCards } from 'lucide-react';
+import { ArrowRight, Shield, WalletCards, Users } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -35,53 +35,52 @@ const Login = () => {
 
       <div className="auth-grid">
         <section className="auth-brand-panel">
-          <span className="auth-kicker">Expense Command Center</span>
-          <h1 className="auth-title">Welcome Back To SplitZilla</h1>
+          <span className="auth-kicker">Sign In</span>
+          <h1 className="auth-title">Welcome back</h1>
           <p className="auth-subtitle">
-            Step into a sharper way to manage shared money. Track group spending, surface balances instantly,
-            and move from chaos to clarity with a dashboard that feels built for the next decade.
+            Manage group spending, balances, and settlements from one clear workspace built for shared finance.
           </p>
 
           <div className="auth-stat-grid">
             <div className="auth-stat">
-              <p className="auth-stat-label">Signal</p>
-              <p className="auth-stat-value">24/7</p>
+              <p className="auth-stat-label">Groups</p>
+              <p className="auth-stat-value">Shared</p>
             </div>
             <div className="auth-stat">
-              <p className="auth-stat-label">Sync</p>
+              <p className="auth-stat-label">Balances</p>
+              <p className="auth-stat-value">Clear</p>
+            </div>
+            <div className="auth-stat">
+              <p className="auth-stat-label">Status</p>
               <p className="auth-stat-value">Live</p>
-            </div>
-            <div className="auth-stat">
-              <p className="auth-stat-label">Split Modes</p>
-              <p className="auth-stat-value">3X</p>
             </div>
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-4">
-              <Shield className="h-5 w-5 text-cyan-300" />
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+              <Shield className="h-5 w-5 text-sky-300" />
               <p className="mt-3 text-sm font-medium text-slate-100">Secure access</p>
-              <p className="mt-2 text-sm text-slate-400">JWT-protected entry for private groups and balances.</p>
+              <p className="mt-2 text-sm text-slate-400">Private access to your account and groups.</p>
             </div>
-            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-4">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
               <WalletCards className="h-5 w-5 text-sky-300" />
-              <p className="mt-3 text-sm font-medium text-slate-100">Smart settlement</p>
-              <p className="mt-2 text-sm text-slate-400">See who owes whom instead of guessing after every trip.</p>
+              <p className="mt-3 text-sm font-medium text-slate-100">Shared visibility</p>
+              <p className="mt-2 text-sm text-slate-400">Keep expenses, balances, and settlements organized.</p>
             </div>
-            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-4">
-              <Sparkles className="h-5 w-5 text-fuchsia-300" />
-              <p className="mt-3 text-sm font-medium text-slate-100">Clean visibility</p>
-              <p className="mt-2 text-sm text-slate-400">Balances, history, and notifications in one flow.</p>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+              <Users className="h-5 w-5 text-sky-300" />
+              <p className="mt-3 text-sm font-medium text-slate-100">Built for groups</p>
+              <p className="mt-2 text-sm text-slate-400">Manage roommates, trips, and events in one place.</p>
             </div>
           </div>
         </section>
 
         <section className="auth-panel">
           <div className="relative z-10">
-            <span className="auth-kicker">Sign In</span>
-            <h2 className="auth-form-title mt-5">Launch Your Workspace</h2>
+            <span className="auth-kicker">Account Access</span>
+            <h2 className="auth-form-title mt-5">Sign in to continue</h2>
             <p className="auth-form-copy">
-              Access your groups, settlements, and expense timeline from one secure cockpit.
+              Enter your account details to access your groups and activity.
             </p>
 
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
@@ -96,7 +95,7 @@ const Login = () => {
                   autoComplete="email"
                   required
                   className="auth-input"
-                  placeholder="captain@splitzilla.ai"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -111,7 +110,7 @@ const Login = () => {
                   autoComplete="current-password"
                   required
                   className="auth-input"
-                  placeholder="Enter your secure passcode"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -122,14 +121,14 @@ const Login = () => {
                 disabled={loading}
                 className="auth-button"
               >
-                {loading ? 'Signing In...' : 'Enter SplitZilla'}
+                {loading ? 'Signing in...' : 'Sign in'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
 
               <div className="pt-2 text-center text-sm text-slate-400">
                 New to the platform?{' '}
                 <Link to="/register" className="auth-link">
-                  Create your access key
+                  Create an account
                 </Link>
               </div>
             </form>
