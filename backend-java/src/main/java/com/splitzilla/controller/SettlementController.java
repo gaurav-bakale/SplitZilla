@@ -39,4 +39,28 @@ public class SettlementController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/group/{groupId}/plans")
+    public ResponseEntity<?> createSettlementPlan(@PathVariable String groupId, Authentication auth) {
+        try {
+            return ResponseEntity.ok(settlementService.createSettlementPlan(groupId, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/group/{groupId}/{settlementId}/payments")
+    public ResponseEntity<?> recordPayment(
+            @PathVariable String groupId,
+            @PathVariable String settlementId,
+            @RequestBody Map<String, Object> body,
+            Authentication auth
+    ) {
+        try {
+            Double amount = ((Number) body.get("amount")).doubleValue();
+            return ResponseEntity.ok(settlementService.recordPayment(groupId, settlementId, amount, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

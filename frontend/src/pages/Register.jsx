@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Layers3, Radar, Users } from 'lucide-react';
+import { ArrowRight, Layers3, Shield, Users } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -36,39 +36,38 @@ const Register = () => {
 
       <div className="auth-grid">
         <section className="auth-brand-panel">
-          <span className="auth-kicker">New Operator</span>
-          <h1 className="auth-title">Create Your Expense Identity</h1>
+          <span className="auth-kicker">Create Account</span>
+          <h1 className="auth-title">Create your account</h1>
           <p className="auth-subtitle">
-            Join a collaborative finance layer designed for trips, roommates, and fast-moving shared plans.
-            Build your account once and manage every split from a single, futuristic hub.
+            Set up your profile to start tracking group expenses, balances, and settlements with clarity.
           </p>
 
           <div className="mt-10 space-y-4">
-            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
               <div className="flex items-center gap-3">
-                <Radar className="h-5 w-5 text-cyan-300" />
-                <p className="text-sm font-medium text-slate-100">Realtime balance awareness</p>
+                <Shield className="h-5 w-5 text-sky-300" />
+                <p className="text-sm font-medium text-slate-100">Secure sign-in</p>
               </div>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                Keep every group aligned with instant balance snapshots and settlement suggestions.
+                Create an account and access your groups from a protected workspace.
               </p>
             </div>
-            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
               <div className="flex items-center gap-3">
                 <Layers3 className="h-5 w-5 text-sky-300" />
-                <p className="text-sm font-medium text-slate-100">Multi-mode split engine</p>
+                <p className="text-sm font-medium text-slate-100">Group-ready setup</p>
               </div>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                Start simple now and scale into equal, percentage, or exact group flows.
+                Start with a clean account and organize shared spending by group.
               </p>
             </div>
-            <div className="rounded-2xl border border-cyan-400/15 bg-slate-950/30 p-5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-fuchsia-300" />
+                <Users className="h-5 w-5 text-sky-300" />
                 <p className="text-sm font-medium text-slate-100">Built for shared decisions</p>
               </div>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                Invite people fast, track activity clearly, and keep group spending transparent.
+                Invite members, track activity, and keep expenses transparent.
               </p>
             </div>
           </div>
@@ -76,10 +75,10 @@ const Register = () => {
 
         <section className="auth-panel">
           <div className="relative z-10">
-            <span className="auth-kicker">Create Account</span>
-            <h2 className="auth-form-title mt-5">Initialize Split Access</h2>
+            <span className="auth-kicker">Registration</span>
+            <h2 className="auth-form-title mt-5">Create your profile</h2>
             <p className="auth-form-copy">
-              Set up your profile to start building groups, tracking expenses, and settling smarter.
+              Enter your details to get started with shared expense tracking.
             </p>
 
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
@@ -109,7 +108,7 @@ const Register = () => {
                   autoComplete="email"
                   required
                   className="auth-input"
-                  placeholder="you@futurepay.space"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -124,7 +123,7 @@ const Register = () => {
                   autoComplete="new-password"
                   required
                   className="auth-input"
-                  placeholder="Create a strong passcode"
+                  placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -135,14 +134,14 @@ const Register = () => {
                 disabled={loading}
                 className="auth-button"
               >
-                {loading ? 'Creating Account...' : 'Activate Account'}
+                {loading ? 'Creating account...' : 'Create account'}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
 
               <div className="pt-2 text-center text-sm text-slate-400">
                 Already inside the network?{' '}
                 <Link to="/login" className="auth-link">
-                  Return to sign in
+                  Sign in
                 </Link>
               </div>
             </form>
