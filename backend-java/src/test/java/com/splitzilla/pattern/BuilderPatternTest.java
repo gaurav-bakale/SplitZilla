@@ -80,7 +80,7 @@ public class BuilderPatternTest {
         assertEquals(100.0, result.get("amount"));
         assertEquals(50.0, result.get("paid_amount"));
         assertEquals(50.0, result.get("outstanding_amount"));
-        assertEquals("PARTIAL", result.get("status"));
+        assertEquals("partial", result.get("status"));
     }
 
     @Test
