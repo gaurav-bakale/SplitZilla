@@ -36,6 +36,10 @@ public class Expense {
     @Column(name = "split_type", nullable = false)
     private String splitType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private ExpenseCategory category = ExpenseCategory.GENERAL;
+
     @CreationTimestamp
     @Column(name = "date", nullable = false, updatable = false)
     private LocalDateTime date;
@@ -48,13 +52,14 @@ public class Expense {
     }
 
     public Expense(String expenseId, String description, Double amount, User payer, Group group,
-                   String splitType, LocalDateTime date, Set<ExpenseSplit> splits) {
+                   String splitType, ExpenseCategory category, LocalDateTime date, Set<ExpenseSplit> splits) {
         this.expenseId = expenseId;
         this.description = description;
         this.amount = amount;
         this.payer = payer;
         this.group = group;
         this.splitType = splitType;
+        this.category = category;
         this.date = date;
         this.splits = splits;
     }
@@ -113,6 +118,14 @@ public class Expense {
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public ExpenseCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(ExpenseCategory category) {
+        this.category = category;
     }
 
     public Set<ExpenseSplit> getSplits() {

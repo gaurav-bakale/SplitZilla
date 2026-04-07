@@ -6,6 +6,7 @@ import com.splitzilla.model.SettlementStatus;
 import com.splitzilla.model.User;
 import com.splitzilla.pattern.builder.SettlementOverviewBuilder;
 import com.splitzilla.pattern.builder.SettlementResponseBuilder;
+import com.splitzilla.pattern.observer.NotificationService;
 import com.splitzilla.pattern.state.SettlementStateFactory;
 import com.splitzilla.repository.GroupRepository;
 import com.splitzilla.repository.SettlementRepository;
@@ -32,6 +33,9 @@ public class SettlementService {
 
     @Autowired
     private SettlementStateFactory settlementStateFactory;
+
+    @Autowired
+    private NotificationService notificationService;
 
     public Map<String, Object> getSettlementOverview(String groupId, String userEmail) {
         Group group = getAuthorizedGroup(groupId, userEmail);
@@ -108,6 +112,15 @@ public class SettlementService {
         settlement.setSettledAt(java.time.LocalDateTime.now());
 
         Settlement savedSettlement = settlementRepository.save(settlement);
+
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", "settlement_recorded");
+        event.put("group_id", groupId);
+        event.put("payer_name", payer.getName());
+        event.put("payee_name", payee.getName());
+        event.put("amount", roundAmount(amount));
+        notificationService.notifyObservers(event);
+
         return toSettlementResponse(savedSettlement);
     }
 
@@ -144,6 +157,12 @@ public class SettlementService {
             createdSettlements.add(toSettlementResponse(settlementRepository.save(settlement)));
         }
 
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", "settlement_plan_created");
+        event.put("group_id", groupId);
+        event.put("settlement_count", createdSettlements.size());
+        notificationService.notifyObservers(event);
+
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("message", "Settlement plan created");
         response.put("created_settlements", createdSettlements);
@@ -157,6 +176,15 @@ public class SettlementService {
 
         settlementStateFactory.getState(settlement.getStatus()).applyPayment(settlement, roundAmount(amount));
         Settlement savedSettlement = settlementRepository.save(settlement);
+
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", "payment_recorded");
+        event.put("group_id", groupId);
+        event.put("payer_name", savedSettlement.getPayer().getName());
+        event.put("amount", roundAmount(amount));
+        event.put("status", savedSettlement.getStatus().name().toLowerCase());
+        notificationService.notifyObservers(event);
+
         return toSettlementResponse(savedSettlement);
     }
 
