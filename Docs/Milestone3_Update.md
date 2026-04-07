@@ -420,7 +420,7 @@ Map<String, Object> overview = new SettlementOverviewBuilder()
 
 ## GitHub Repository
 
-**Repository URL:** [Add your private GitHub repository URL here]
+**Repository URL:** https://github.com/gaurav-bakale/SplitZilla
 
 **Collaborators Added:**
 - vaibhavsingh97 ✅
