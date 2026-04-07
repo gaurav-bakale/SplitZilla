@@ -84,7 +84,7 @@ public class ExpenseServiceTest {
     public void testFilterExpensesBySearch() {
         when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
 
-        List<Expense> result = expenseService.filterExpenses("group1", "lunch", null, null, null, null, null);
+        List<Expense> result = expenseService.filterExpenses("group1", "lunch", null, null, null, null, null, null);
 
         assertEquals(1, result.size());
         assertEquals("Lunch", result.get(0).getDescription());
@@ -94,7 +94,7 @@ public class ExpenseServiceTest {
     public void testFilterExpensesByAmount() {
         when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
 
-        List<Expense> result = expenseService.filterExpenses("group1", null, null, null, null, 75.0, null);
+        List<Expense> result = expenseService.filterExpenses("group1", null, null, null, null, 75.0, null, null);
 
         assertEquals(1, result.size());
         assertEquals(100.0, result.get(0).getAmount());
