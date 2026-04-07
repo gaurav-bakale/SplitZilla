@@ -1,26 +1,24 @@
 package com.splitzilla.model;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Transient;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "expense_splits")
 public class ExpenseSplit {
 
-    @Id
-    @Column(name = "split_id")
     private String splitId = UUID.randomUUID().toString();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "expense_id", nullable = false)
+    @Transient
+    @JsonIgnore
     private Expense expense;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private String userId;
+
+    @Transient
     private User user;
 
-    @Column(nullable = false)
     private Double amount;
 
     public ExpenseSplit() {
@@ -29,7 +27,7 @@ public class ExpenseSplit {
     public ExpenseSplit(String splitId, Expense expense, User user, Double amount) {
         this.splitId = splitId;
         this.expense = expense;
-        this.user = user;
+        setUser(user);
         this.amount = amount;
     }
 
@@ -55,6 +53,7 @@ public class ExpenseSplit {
 
     public void setUser(User user) {
         this.user = user;
+        this.userId = user != null ? user.getUserId() : null;
     }
 
     public Double getAmount() {
@@ -63,5 +62,13 @@ public class ExpenseSplit {
 
     public void setAmount(Double amount) {
         this.amount = amount;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

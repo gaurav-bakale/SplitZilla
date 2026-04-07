@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupService {
@@ -21,7 +24,9 @@ public class GroupService {
     public List<Group> getGroupsForUser(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return groupRepository.findByMembersUserId(user.getUserId());
+        return groupRepository.findByMemberIdsContaining(user.getUserId()).stream()
+                .map(this::populateMembers)
+                .toList();
     }
 
     public Group createGroup(String name, String description, String userEmail) {
@@ -30,13 +35,13 @@ public class GroupService {
         Group group = new Group();
         group.setName(name);
         group.setDescription(description);
-        group.getMembers().add(user);
-        return groupRepository.save(group);
+        group.setMemberIds(Set.of(user.getUserId()));
+        return populateMembers(groupRepository.save(group));
     }
 
     public Group getGroup(String groupId) {
-        return groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+        return populateMembers(groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found")));
     }
 
     public Group addMember(String groupId, String memberEmail) {
@@ -44,7 +49,17 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         User user = userRepository.findByEmail(memberEmail)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + memberEmail));
-        group.getMembers().add(user);
-        return groupRepository.save(group);
+        Set<String> memberIds = group.getMemberIds();
+        memberIds.add(user.getUserId());
+        group.setMemberIds(memberIds);
+        return populateMembers(groupRepository.save(group));
+    }
+
+    private Group populateMembers(Group group) {
+        group.setMembers(group.getMemberIds().stream()
+                .map(memberId -> userRepository.findById(memberId).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        return group;
     }
 }

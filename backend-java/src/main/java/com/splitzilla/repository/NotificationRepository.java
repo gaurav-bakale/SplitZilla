@@ -1,10 +1,10 @@
 package com.splitzilla.repository;
 
 import com.splitzilla.model.Notification;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-public interface NotificationRepository extends JpaRepository<Notification, String> {
-    List<Notification> findByUserUserIdOrderByCreatedAtDesc(String userId);
+public interface NotificationRepository extends MongoRepository<Notification, String> {
+    List<Notification> findByUserIdOrderByCreatedAtDesc(String userId);
 }

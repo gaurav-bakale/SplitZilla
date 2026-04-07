@@ -1,45 +1,41 @@
 package com.splitzilla.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-@Entity
-@Table(name = "users")
+@Document(collection = "users")
 public class User {
 
     @Id
-    @Column(name = "user_id")
     private String userId = UUID.randomUUID().toString();
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Indexed(unique = true)
     private String email;
 
-    @Column(nullable = false)
     private String password;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Transient
     @JsonIgnore
-    @ManyToMany(mappedBy = "members")
     private Set<Group> groups = new HashSet<>();
 
+    @Transient
     @JsonIgnore
-    @OneToMany(mappedBy = "payer", cascade = CascadeType.ALL)
     private Set<Expense> expensesPaid = new HashSet<>();
 
+    @Transient
     @JsonIgnore
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<Notification> notifications = new HashSet<>();
 
     public User() {

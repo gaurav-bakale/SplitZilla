@@ -1,47 +1,44 @@
 package com.splitzilla.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-@Entity
-@Table(name = "expenses")
+@Document(collection = "expenses")
 public class Expense {
 
     @Id
-    @Column(name = "expense_id")
     private String expenseId = UUID.randomUUID().toString();
 
-    @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
     private Double amount;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "paid_by_id", nullable = false)
+    private String payerId;
+
+    @Transient
+    @JsonIgnore
     private User payer;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    private String groupId;
+
+    @Transient
+    @JsonIgnore
     private Group group;
 
-    @Column(name = "split_type", nullable = false)
     private String splitType;
 
-    @CreationTimestamp
-    @Column(name = "date", nullable = false, updatable = false)
-    private LocalDateTime date;
+    private LocalDateTime date = LocalDateTime.now();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ExpenseSplit> splits = new HashSet<>();
 
     public Expense() {
@@ -52,8 +49,8 @@ public class Expense {
         this.expenseId = expenseId;
         this.description = description;
         this.amount = amount;
-        this.payer = payer;
-        this.group = group;
+        setPayer(payer);
+        setGroup(group);
         this.splitType = splitType;
         this.date = date;
         this.splits = splits;
@@ -89,6 +86,7 @@ public class Expense {
 
     public void setPayer(User payer) {
         this.payer = payer;
+        this.payerId = payer != null ? payer.getUserId() : null;
     }
 
     public Group getGroup() {
@@ -97,6 +95,7 @@ public class Expense {
 
     public void setGroup(Group group) {
         this.group = group;
+        this.groupId = group != null ? group.getGroupId() : null;
     }
 
     public String getSplitType() {
@@ -121,5 +120,21 @@ public class Expense {
 
     public void setSplits(Set<ExpenseSplit> splits) {
         this.splits = splits;
+    }
+
+    public String getPayerId() {
+        return payerId;
+    }
+
+    public void setPayerId(String payerId) {
+        this.payerId = payerId;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 }

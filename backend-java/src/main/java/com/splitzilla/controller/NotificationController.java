@@ -25,6 +25,6 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getNotifications(Authentication auth) {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.ok(notificationRepository.findByUserUserIdOrderByCreatedAtDesc(user.getUserId()));
+        return ResponseEntity.ok(notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getUserId()));
     }
 }

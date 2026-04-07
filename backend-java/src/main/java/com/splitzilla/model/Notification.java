@@ -1,41 +1,38 @@
 package com.splitzilla.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "notifications")
+@Document(collection = "notifications")
 public class Notification {
 
     @Id
-    @Column(name = "notification_id")
     private String notificationId = UUID.randomUUID().toString();
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    private String userId;
+
+    @Transient
+    @JsonIgnore
     private User user;
 
-    @Column(nullable = false)
     private String message;
 
-    @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Notification() {
     }
 
     public Notification(String notificationId, User user, String message, Boolean isRead, LocalDateTime createdAt) {
         this.notificationId = notificationId;
-        this.user = user;
+        setUser(user);
         this.message = message;
         this.isRead = isRead;
         this.createdAt = createdAt;
@@ -55,6 +52,7 @@ public class Notification {
 
     public void setUser(User user) {
         this.user = user;
+        this.userId = user != null ? user.getUserId() : null;
     }
 
     public String getMessage() {
@@ -79,5 +77,13 @@ public class Notification {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
