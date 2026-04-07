@@ -142,16 +142,6 @@
 - Separates construction logic from representation
 - Easy to add new fields without breaking existing code
 
-**Example Usage:**
-```java
-Map<String, Object> overview = new SettlementOverviewBuilder()
-    .withBalances(balanceList)
-    .withRecommendedPlan(suggestions)
-    .withActiveSettlements(activeSettlements)
-    .withMetrics(metrics)
-    .build();
-```
-
 ---
 
 ## 2. System Architecture
@@ -184,50 +174,44 @@ The system follows a **three-tier architecture** with clear separation of concer
 ### 2.2 Data Flow
 
 **User Registration/Login:**
-```
-Frontend → POST /api/auth/register → Backend validates input → 
-Hash password with bcrypt → Store in database → Return user data
-
-Frontend → POST /api/auth/login → Backend validates credentials → 
-Generate JWT token → Return token → Frontend stores in localStorage
-```
+- Frontend sends registration request to backend
+- Backend validates input and hashes password with bcrypt
+- User data stored in database and returned to frontend
+- For login, backend validates credentials and generates JWT token
+- Frontend stores token in localStorage for subsequent requests
 
 **Creating a Group:**
-```
-Frontend → POST /api/groups/ → Backend authenticates JWT → 
-GroupFactory creates group based on type → Save to database → 
-NotificationService notifies members → Return group data
-```
+- Frontend sends group creation request with authentication
+- Backend authenticates JWT and uses GroupFactory to create group based on type
+- Group saved to database
+- NotificationService broadcasts event to observers
+- Group data returned to frontend
 
 **Adding an Expense:**
-```
-Frontend → POST /api/expenses/ → Backend authenticates JWT → 
-SplitStrategyFactory selects strategy → Calculate splits → 
-CommandManager executes AddExpenseCommand → Save to database → 
-NotificationService notifies members → Return expense data
-```
+- Frontend sends expense creation request with authentication
+- Backend authenticates and uses SplitStrategyFactory to select appropriate strategy
+- Strategy calculates individual member splits
+- CommandManager executes AddExpenseCommand for undo/redo support
+- Expense and splits saved to database
+- NotificationService notifies group members
+- Expense data returned to frontend
 
 **Recording a Settlement Payment:**
-```
-Frontend → POST /api/settlements/{id}/payments → Backend authenticates → 
-SettlementStateFactory gets current state → State validates payment → 
-State applies payment and transitions → Save to database → 
-Return updated settlement
-```
+- Frontend sends payment recording request with authentication
+- Backend authenticates and uses SettlementStateFactory to get current state
+- State validates payment amount and applies it
+- State transitions settlement to new status if applicable
+- Updated settlement saved to database and returned
 
 **Filtering Expenses:**
-```
-Frontend → GET /api/expenses/group/{id}/filter?params → 
-Backend authenticates → ExpenseService filters by criteria → 
-Return filtered expense list
-```
+- Frontend sends filter request with query parameters
+- Backend authenticates and ExpenseService applies filters (search, member, date range, amount)
+- Filtered expense list returned to frontend
 
 **Exporting to CSV:**
-```
-Frontend → GET /api/expenses/group/{id}/export/csv → 
-Backend authenticates → ExpenseService generates CSV → 
-Return CSV file with proper headers
-```
+- Frontend requests CSV export for a group
+- Backend authenticates and ExpenseService generates CSV with proper formatting
+- CSV file returned with appropriate headers for download
 
 ### 2.3 Component Interaction
 
