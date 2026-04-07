@@ -55,10 +55,14 @@ public class BuilderPatternTest {
         payee.setUserId("user2");
         payee.setName("Bob");
 
+        com.splitzilla.model.Group group = new com.splitzilla.model.Group();
+        group.setGroupId("group1");
+
         Settlement settlement = new Settlement();
         settlement.setSettlementId("settlement1");
         settlement.setPayer(payer);
         settlement.setPayee(payee);
+        settlement.setGroup(group);
         settlement.setAmount(100.0);
         settlement.setPaidAmount(50.0);
         settlement.setStatus(SettlementStatus.PARTIAL);

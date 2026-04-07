@@ -72,7 +72,7 @@ public class StrategyPatternTest {
         amounts.put("user1", 150.0);
         amounts.put("user2", 100.0);
         amounts.put("user3", 50.0);
-        params.put("amounts", amounts);
+        params.put("exact_amounts", amounts);
 
         Map<String, Double> result = strategy.split(300.0, members, params);
 
@@ -91,7 +91,7 @@ public class StrategyPatternTest {
         Map<String, Double> amounts = new HashMap<>();
         amounts.put("user1", 150.0);
         amounts.put("user2", 100.0);
-        params.put("amounts", amounts);
+        params.put("exact_amounts", amounts);
 
         assertThrows(IllegalArgumentException.class, () -> {
             strategy.split(300.0, members, params);

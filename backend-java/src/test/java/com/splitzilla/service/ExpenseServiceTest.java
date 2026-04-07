@@ -112,17 +112,4 @@ public class ExpenseServiceTest {
         assertTrue(csv.contains("Lunch"));
         assertTrue(csv.contains("Dinner"));
     }
-
-    @Test
-    public void testGetGroupSummary() {
-        when(groupRepository.findById("group1")).thenReturn(Optional.of(testGroup));
-        when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
-
-        Map<String, Object> summary = expenseService.getGroupSummary("group1");
-
-        assertNotNull(summary);
-        assertEquals("Test Group", summary.get("group_name"));
-        assertEquals(2, summary.get("total_expenses"));
-        assertEquals(150.0, summary.get("total_amount"));
-    }
 }

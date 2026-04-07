@@ -53,8 +53,7 @@ public class FactoryPatternTest {
         Group group = groupFactory.createGroup("general", "Friends", "General expenses");
         
         assertNotNull(group);
-        assertTrue(group.getName().contains("Friends"));
-        assertTrue(group.getName().contains("👥"));
+        assertEquals("Friends", group.getName());
         assertEquals("General expenses", group.getDescription());
     }
 
@@ -63,7 +62,7 @@ public class FactoryPatternTest {
         Group group = groupFactory.createGroup("unknown", "Test Group", "Test description");
         
         assertNotNull(group);
-        assertTrue(group.getName().contains("👥"));
+        assertEquals("Test Group", group.getName());
     }
 
     @Test
