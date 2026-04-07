@@ -33,7 +33,8 @@ public class ExpenseController {
             Double amount = ((Number) body.get("amount")).doubleValue();
             String splitType = (String) body.get("split_type");
             String groupId = (String) body.get("group_id");
-            Expense expense = expenseService.createExpense(description, amount, splitType, groupId, auth.getName());
+            String category = (String) body.get("category");
+            Expense expense = expenseService.createExpense(description, amount, splitType, groupId, auth.getName(), category);
             return ResponseEntity.ok(expense);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -57,7 +58,8 @@ public class ExpenseController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Double minAmount,
-            @RequestParam(required = false) Double maxAmount
+            @RequestParam(required = false) Double maxAmount,
+            @RequestParam(required = false) String category
     ) {
         try {
             LocalDateTime start = null;
@@ -80,7 +82,7 @@ public class ExpenseController {
             }
 
             List<Expense> expenses = expenseService.filterExpenses(
-                    groupId, search, memberId, start, end, minAmount, maxAmount
+                    groupId, search, memberId, start, end, minAmount, maxAmount, category
             );
             return ResponseEntity.ok(expenses);
         } catch (RuntimeException e) {
