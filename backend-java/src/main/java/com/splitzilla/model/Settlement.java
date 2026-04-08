@@ -1,53 +1,50 @@
 package com.splitzilla.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "settlements")
+@Document(collection = "settlements")
 public class Settlement {
 
     @Id
-    @Column(name = "settlement_id")
     private String settlementId = UUID.randomUUID().toString();
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
+    private String groupId;
+
+    @Transient
+    @JsonIgnore
     private Group group;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payer_id", nullable = false)
+    private String payerId;
+
+    @Transient
+    @JsonIgnore
     private User payer;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payee_id", nullable = false)
+    private String payeeId;
+
+    @Transient
+    @JsonIgnore
     private User payee;
 
-    @Column(nullable = false)
     private Double amount;
 
-    @Column(name = "paid_amount", nullable = false)
     private Double paidAmount = 0.0;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private SettlementStatus status = SettlementStatus.PENDING;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "last_payment_at")
     private LocalDateTime lastPaymentAt;
 
-    @Column(name = "settled_at")
     private LocalDateTime settledAt;
 
     public Settlement() {
@@ -67,6 +64,7 @@ public class Settlement {
 
     public void setGroup(Group group) {
         this.group = group;
+        this.groupId = group != null ? group.getGroupId() : null;
     }
 
     public User getPayer() {
@@ -75,6 +73,7 @@ public class Settlement {
 
     public void setPayer(User payer) {
         this.payer = payer;
+        this.payerId = payer != null ? payer.getUserId() : null;
     }
 
     public User getPayee() {
@@ -83,6 +82,7 @@ public class Settlement {
 
     public void setPayee(User payee) {
         this.payee = payee;
+        this.payeeId = payee != null ? payee.getUserId() : null;
     }
 
     public Double getAmount() {
@@ -131,5 +131,29 @@ public class Settlement {
 
     public void setSettledAt(LocalDateTime settledAt) {
         this.settledAt = settledAt;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
+    public String getPayerId() {
+        return payerId;
+    }
+
+    public void setPayerId(String payerId) {
+        this.payerId = payerId;
+    }
+
+    public String getPayeeId() {
+        return payeeId;
+    }
+
+    public void setPayeeId(String payeeId) {
+        this.payeeId = payeeId;
     }
 }

@@ -17,7 +17,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,13 +46,15 @@ public class ExpenseService {
     private NotificationService notificationService;
 
     public List<Expense> getExpensesForGroup(String groupId) {
-        return expenseRepository.findByGroupGroupId(groupId);
+        return expenseRepository.findByGroupId(groupId).stream()
+                .map(this::populateExpenseReferences)
+                .toList();
     }
 
     public List<Expense> filterExpenses(String groupId, String searchTerm, String memberId,
                                         LocalDateTime startDate, LocalDateTime endDate,
                                         Double minAmount, Double maxAmount, String category) {
-        List<Expense> expenses = expenseRepository.findByGroupGroupId(groupId);
+        List<Expense> expenses = getExpensesForGroup(groupId);
 
         return expenses.stream()
                 .filter(expense -> {
@@ -103,7 +112,7 @@ public class ExpenseService {
     public String exportExpensesToCsv(String groupId) {
         groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
-        List<Expense> expenses = expenseRepository.findByGroupGroupId(groupId);
+        List<Expense> expenses = getExpensesForGroup(groupId);
 
         StringBuilder csv = new StringBuilder();
         csv.append("Date,Description,Amount,Category,Paid By,Split Type,Members\n");
@@ -120,7 +129,7 @@ public class ExpenseService {
 
             String members = expense.getSplits().stream()
                     .map(split -> split.getUser().getName() + " ($" +
-                          String.format("%.2f", split.getAmount()) + ")")
+                            String.format("%.2f", split.getAmount()) + ")")
                     .collect(Collectors.joining("; "));
             csv.append("\"").append(members).append("\"");
             csv.append("\n");
@@ -130,9 +139,9 @@ public class ExpenseService {
     }
 
     public Map<String, Object> getGroupSummary(String groupId) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
-        List<Expense> expenses = expenseRepository.findByGroupGroupId(groupId);
+        Group group = populateGroup(groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found")));
+        List<Expense> expenses = getExpensesForGroup(groupId);
 
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("group_name", group.getName());
@@ -157,7 +166,6 @@ public class ExpenseService {
                 ));
         summary.put("expenses_by_split_type", expensesBySplitType);
 
-        // Category breakdown using CategorySummaryBuilder (Builder Pattern)
         Map<ExpenseCategory, Double> categoryTotals = new LinkedHashMap<>();
         Map<ExpenseCategory, Integer> categoryCounts = new LinkedHashMap<>();
         for (Expense expense : expenses) {
@@ -183,9 +191,9 @@ public class ExpenseService {
     }
 
     public Expense createExpense(String description, Double amount, String splitType,
-                                  String groupId, String payerEmail, String categoryStr) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+                                 String groupId, String payerEmail, String categoryStr) {
+        Group group = populateGroup(groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found")));
         User payer = userRepository.findByEmail(payerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -207,9 +215,7 @@ public class ExpenseService {
         expense.setGroup(group);
         expense.setCategory(category);
 
-        List<String> memberIds = group.getMembers().stream()
-                .map(User::getUserId)
-                .collect(Collectors.toList());
+        List<String> memberIds = new ArrayList<>(group.getMemberIds());
 
         ISplitStrategy strategy = splitStrategyFactory.getStrategy(splitType);
         Map<String, Double> splits = strategy.split(amount, memberIds, new HashMap<>());
@@ -228,7 +234,7 @@ public class ExpenseService {
 
         Expense saved = expenseRepository.save(expense);
 
-        // Fire Observer event so NotificationObserver and ActivityObserver both handle it
+        // Fire observer event after the expense is persisted
         List<String> groupMemberIds = group.getMembers().stream()
                 .map(User::getUserId)
                 .collect(Collectors.toList());
@@ -244,12 +250,12 @@ public class ExpenseService {
         event.put("group_members", groupMemberIds);
         notificationService.notifyObservers(event);
 
-        return saved;
+        return populateExpenseReferences(saved);
     }
 
     public Map<String, Object> getBalancesForGroup(String groupId) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+        Group group = populateGroup(groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found")));
         Map<String, Double> balanceMap = calculateBalanceMap(groupId, group);
         Map<String, String> nameMap = new HashMap<>();
 
@@ -272,7 +278,7 @@ public class ExpenseService {
     }
 
     private Map<String, Double> calculateBalanceMap(String groupId, Group group) {
-        List<Expense> expenses = expenseRepository.findByGroupGroupId(groupId);
+        List<Expense> expenses = getExpensesForGroup(groupId);
         Map<String, Double> balanceMap = new HashMap<>();
 
         for (User member : group.getMembers()) {
@@ -290,5 +296,33 @@ public class ExpenseService {
         }
 
         return balanceMap;
+    }
+
+    private Group populateGroup(Group group) {
+        group.setMembers(group.getMemberIds().stream()
+                .map(memberId -> userRepository.findById(memberId).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        return group;
+    }
+
+    private Expense populateExpenseReferences(Expense expense) {
+        if (expense.getPayerId() != null) {
+            userRepository.findById(expense.getPayerId()).ifPresent(expense::setPayer);
+        }
+        if (expense.getGroupId() != null) {
+            groupRepository.findById(expense.getGroupId())
+                    .map(this::populateGroup)
+                    .ifPresent(expense::setGroup);
+        }
+        if (expense.getSplits() != null) {
+            expense.getSplits().forEach(split -> {
+                split.setExpense(expense);
+                if (split.getUserId() != null) {
+                    userRepository.findById(split.getUserId()).ifPresent(split::setUser);
+                }
+            });
+        }
+        return expense;
     }
 }

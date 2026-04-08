@@ -5,13 +5,11 @@ import com.splitzilla.pattern.strategy.ExactAmountSplitStrategy;
 import com.splitzilla.pattern.strategy.ISplitStrategy;
 import com.splitzilla.pattern.strategy.PercentageSplitStrategy;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 public class StrategyPatternTest {
 
     @Test

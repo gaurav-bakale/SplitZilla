@@ -14,7 +14,14 @@ import com.splitzilla.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SettlementService {
@@ -40,12 +47,12 @@ public class SettlementService {
     public Map<String, Object> getSettlementOverview(String groupId, String userEmail) {
         Group group = getAuthorizedGroup(groupId, userEmail);
         Map<String, Double> baseBalances = extractBalances(expenseService.getBalancesForGroup(groupId));
-        List<Settlement> activeSettlements = settlementRepository.findByGroupGroupIdAndStatusInOrderByCreatedAtAsc(
+        List<Settlement> activeSettlements = settlementRepository.findByGroupIdAndStatusInOrderByCreatedAtAsc(
                 groupId, List.of(SettlementStatus.PENDING, SettlementStatus.PARTIAL)
-        );
-        List<Settlement> completedSettlements = settlementRepository.findByGroupGroupIdAndStatusOrderBySettledAtDesc(
+        ).stream().map(this::populateSettlementReferences).toList();
+        List<Settlement> completedSettlements = settlementRepository.findByGroupIdAndStatusOrderBySettledAtDesc(
                 groupId, SettlementStatus.COMPLETED
-        );
+        ).stream().map(this::populateSettlementReferences).toList();
 
         Map<String, Double> effectiveBalances = new HashMap<>(baseBalances);
         applyPaidAmounts(effectiveBalances, activeSettlements);
@@ -111,7 +118,7 @@ public class SettlementService {
         settlement.setLastPaymentAt(java.time.LocalDateTime.now());
         settlement.setSettledAt(java.time.LocalDateTime.now());
 
-        Settlement savedSettlement = settlementRepository.save(settlement);
+        Settlement savedSettlement = populateSettlementReferences(settlementRepository.save(settlement));
 
         Map<String, Object> event = new HashMap<>();
         event.put("type", "settlement_recorded");
@@ -126,18 +133,18 @@ public class SettlementService {
 
     public Map<String, Object> createSettlementPlan(String groupId, String userEmail) {
         Group group = getAuthorizedGroup(groupId, userEmail);
-        List<Settlement> activeSettlements = settlementRepository.findByGroupGroupIdAndStatusInOrderByCreatedAtAsc(
+        List<Settlement> activeSettlements = settlementRepository.findByGroupIdAndStatusInOrderByCreatedAtAsc(
                 groupId, List.of(SettlementStatus.PENDING, SettlementStatus.PARTIAL)
-        );
+        ).stream().map(this::populateSettlementReferences).toList();
 
         if (!activeSettlements.isEmpty()) {
             throw new RuntimeException("Finish the current active settlement plan before generating another one");
         }
 
         Map<String, Double> effectiveBalances = extractBalances(expenseService.getBalancesForGroup(groupId));
-        List<Settlement> completedSettlements = settlementRepository.findByGroupGroupIdAndStatusOrderBySettledAtDesc(
+        List<Settlement> completedSettlements = settlementRepository.findByGroupIdAndStatusOrderBySettledAtDesc(
                 groupId, SettlementStatus.COMPLETED
-        );
+        ).stream().map(this::populateSettlementReferences).toList();
         applyPaidAmounts(effectiveBalances, completedSettlements);
 
         List<Map<String, Object>> suggestions = calculateSuggestedSettlements(effectiveBalances, group);
@@ -154,7 +161,9 @@ public class SettlementService {
             settlement.setAmount(roundAmount(((Number) suggestion.get("amount")).doubleValue()));
             settlement.setPaidAmount(0.0);
             settlement.setStatus(SettlementStatus.PENDING);
-            createdSettlements.add(toSettlementResponse(settlementRepository.save(settlement)));
+            createdSettlements.add(toSettlementResponse(
+                    populateSettlementReferences(settlementRepository.save(settlement))
+            ));
         }
 
         Map<String, Object> event = new HashMap<>();
@@ -171,11 +180,13 @@ public class SettlementService {
 
     public Map<String, Object> recordPayment(String groupId, String settlementId, Double amount, String userEmail) {
         getAuthorizedGroup(groupId, userEmail);
-        Settlement settlement = settlementRepository.findBySettlementIdAndGroupGroupId(settlementId, groupId)
-                .orElseThrow(() -> new RuntimeException("Settlement plan not found"));
+        Settlement settlement = populateSettlementReferences(
+                settlementRepository.findBySettlementIdAndGroupId(settlementId, groupId)
+                        .orElseThrow(() -> new RuntimeException("Settlement plan not found"))
+        );
 
         settlementStateFactory.getState(settlement.getStatus()).applyPayment(settlement, roundAmount(amount));
-        Settlement savedSettlement = settlementRepository.save(settlement);
+        Settlement savedSettlement = populateSettlementReferences(settlementRepository.save(settlement));
 
         Map<String, Object> event = new HashMap<>();
         event.put("type", "payment_recorded");
@@ -188,9 +199,10 @@ public class SettlementService {
         return toSettlementResponse(savedSettlement);
     }
 
+
     private Group getAuthorizedGroup(String groupId, String userEmail) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+        Group group = populateGroup(groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found")));
         User currentUser = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -322,6 +334,29 @@ public class SettlementService {
 
     private double roundAmount(double amount) {
         return Math.round(amount * 100.0) / 100.0;
+    }
+
+    private Group populateGroup(Group group) {
+        group.setMembers(group.getMemberIds().stream()
+                .map(memberId -> userRepository.findById(memberId).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        return group;
+    }
+
+    private Settlement populateSettlementReferences(Settlement settlement) {
+        if (settlement.getGroupId() != null) {
+            groupRepository.findById(settlement.getGroupId())
+                    .map(this::populateGroup)
+                    .ifPresent(settlement::setGroup);
+        }
+        if (settlement.getPayerId() != null) {
+            userRepository.findById(settlement.getPayerId()).ifPresent(settlement::setPayer);
+        }
+        if (settlement.getPayeeId() != null) {
+            userRepository.findById(settlement.getPayeeId()).ifPresent(settlement::setPayee);
+        }
+        return settlement;
     }
 
     private static class SettlementParty {

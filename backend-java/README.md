@@ -6,10 +6,9 @@ Complete Java implementation of the SplitZilla expense splitting application wit
 
 - **Java 17**
 - **Spring Boot 3.2.0**
-- **Spring Data JPA**
+- **Spring Data MongoDB**
 - **Spring Security with JWT**
-- **H2 Database** (Development)
-- **PostgreSQL** (Production-ready)
+- **MongoDB**
 - **Maven**
 - **Lombok**
 
@@ -54,7 +53,7 @@ Complete Java implementation of the SplitZilla expense splitting application wit
 backend-java/
 ├── src/main/java/com/splitzilla/
 │   ├── SplitZillaApplication.java
-│   ├── model/                    # JPA Entities
+│   ├── model/                    # MongoDB Documents
 │   │   ├── User.java
 │   │   ├── Group.java
 │   │   ├── Expense.java
@@ -65,7 +64,7 @@ backend-java/
 │   │   ├── observer/
 │   │   ├── factory/
 │   │   └── command/
-│   ├── repository/               # Spring Data JPA Repositories
+│   ├── repository/               # Spring Data MongoDB Repositories
 │   ├── service/                  # Business Logic
 │   ├── controller/               # REST Controllers
 │   ├── dto/                      # Data Transfer Objects
@@ -99,12 +98,6 @@ mvn spring-boot:run
 ```
 
 The application will start on `http://localhost:8080`
-
-### H2 Console
-Access the H2 database console at: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:mem:splitzilla`
-- Username: `sa`
-- Password: (leave empty)
 
 ## API Endpoints
 
@@ -149,12 +142,9 @@ mvn test
 
 ## Production Deployment
 
-For production, update `application.properties`:
+Configure MongoDB in `application.properties`:
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/splitzilla
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-spring.jpa.hibernate.ddl-auto=validate
+spring.data.mongodb.uri=mongodb://localhost:27017/splitzilla
 ```
 
 ---

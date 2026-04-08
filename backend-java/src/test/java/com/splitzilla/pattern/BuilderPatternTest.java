@@ -6,13 +6,11 @@ import com.splitzilla.model.Settlement;
 import com.splitzilla.model.SettlementStatus;
 import com.splitzilla.model.User;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 public class BuilderPatternTest {
 
     @Test

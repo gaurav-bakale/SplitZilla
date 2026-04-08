@@ -3,15 +3,15 @@ package com.splitzilla.service;
 import com.splitzilla.model.Expense;
 import com.splitzilla.model.Group;
 import com.splitzilla.model.User;
-import com.splitzilla.pattern.strategy.SplitStrategyFactory;
 import com.splitzilla.repository.ExpenseRepository;
 import com.splitzilla.repository.GroupRepository;
 import com.splitzilla.repository.UserRepository;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -19,7 +19,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class ExpenseServiceTest {
 
     @Mock
@@ -30,9 +30,6 @@ public class ExpenseServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private SplitStrategyFactory splitStrategyFactory;
 
     @InjectMocks
     private ExpenseService expenseService;
@@ -72,17 +69,17 @@ public class ExpenseServiceTest {
 
     @Test
     public void testGetExpensesForGroup() {
-        when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
+        when(expenseRepository.findByGroupId("group1")).thenReturn(testExpenses);
 
         List<Expense> result = expenseService.getExpensesForGroup("group1");
 
         assertEquals(2, result.size());
-        verify(expenseRepository, times(1)).findByGroupGroupId("group1");
+        verify(expenseRepository, times(1)).findByGroupId("group1");
     }
 
     @Test
     public void testFilterExpensesBySearch() {
-        when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
+        when(expenseRepository.findByGroupId("group1")).thenReturn(testExpenses);
 
         List<Expense> result = expenseService.filterExpenses("group1", "lunch", null, null, null, null, null, null);
 
@@ -92,7 +89,7 @@ public class ExpenseServiceTest {
 
     @Test
     public void testFilterExpensesByAmount() {
-        when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
+        when(expenseRepository.findByGroupId("group1")).thenReturn(testExpenses);
 
         List<Expense> result = expenseService.filterExpenses("group1", null, null, null, null, 75.0, null, null);
 
@@ -103,7 +100,7 @@ public class ExpenseServiceTest {
     @Test
     public void testExportExpensesToCsv() {
         when(groupRepository.findById("group1")).thenReturn(Optional.of(testGroup));
-        when(expenseRepository.findByGroupGroupId("group1")).thenReturn(testExpenses);
+        when(expenseRepository.findByGroupId("group1")).thenReturn(testExpenses);
 
         String csv = expenseService.exportExpensesToCsv("group1");
 

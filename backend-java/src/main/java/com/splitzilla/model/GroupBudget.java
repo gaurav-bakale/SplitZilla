@@ -1,8 +1,7 @@
 package com.splitzilla.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,34 +10,25 @@ import java.util.UUID;
  * A spending cap set for a group.
  * One budget per group — update replaces the existing record.
  */
-@Entity
-@Table(name = "group_budgets")
+@Document(collection = "group_budgets")
 public class GroupBudget {
 
     @Id
-    @Column(name = "budget_id")
     private String budgetId = UUID.randomUUID().toString();
 
-    @Column(name = "group_id", nullable = false, unique = true)
     private String groupId;
 
-    @Column(name = "amount", nullable = false)
     private Double amount;
 
     /**
      * Fraction (0–1) of the budget at which a WARNING is issued.
      * Default: 0.80 (warn when 80 % is spent).
      */
-    @Column(name = "warning_threshold", nullable = false)
     private Double warningThreshold = 0.80;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public GroupBudget() {
     }
