@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,6 +65,7 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         User user = userRepository.findByEmail(memberEmail)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + memberEmail));
+
         Set<String> memberIds = group.getMemberIds();
         memberIds.add(user.getUserId());
         group.setMemberIds(memberIds);

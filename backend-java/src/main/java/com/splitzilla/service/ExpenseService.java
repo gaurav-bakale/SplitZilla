@@ -166,7 +166,6 @@ public class ExpenseService {
                 ));
         summary.put("expenses_by_split_type", expensesBySplitType);
 
-        // Category breakdown using CategorySummaryBuilder (Builder Pattern)
         Map<ExpenseCategory, Double> categoryTotals = new LinkedHashMap<>();
         Map<ExpenseCategory, Integer> categoryCounts = new LinkedHashMap<>();
         for (Expense expense : expenses) {
@@ -235,7 +234,7 @@ public class ExpenseService {
 
         Expense saved = expenseRepository.save(expense);
 
-        // Fire Observer event so NotificationObserver and ActivityObserver both handle it
+        // Fire observer event after the expense is persisted
         List<String> groupMemberIds = group.getMembers().stream()
                 .map(User::getUserId)
                 .collect(Collectors.toList());

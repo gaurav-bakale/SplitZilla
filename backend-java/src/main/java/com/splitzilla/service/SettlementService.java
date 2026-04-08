@@ -127,6 +127,7 @@ public class SettlementService {
         event.put("payee_name", payee.getName());
         event.put("amount", roundAmount(amount));
         notificationService.notifyObservers(event);
+
         return toSettlementResponse(savedSettlement);
     }
 
@@ -194,8 +195,10 @@ public class SettlementService {
         event.put("amount", roundAmount(amount));
         event.put("status", savedSettlement.getStatus().name().toLowerCase());
         notificationService.notifyObservers(event);
+
         return toSettlementResponse(savedSettlement);
     }
+
 
     private Group getAuthorizedGroup(String groupId, String userEmail) {
         Group group = populateGroup(groupRepository.findById(groupId)
