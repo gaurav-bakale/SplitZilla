@@ -36,7 +36,10 @@ public class Expense {
 
     private String splitType;
 
+    private ExpenseCategory category = ExpenseCategory.GENERAL;
+
     private LocalDateTime date = LocalDateTime.now();
+
 
     @JsonIgnore
     private Set<ExpenseSplit> splits = new HashSet<>();
@@ -45,13 +48,14 @@ public class Expense {
     }
 
     public Expense(String expenseId, String description, Double amount, User payer, Group group,
-                   String splitType, LocalDateTime date, Set<ExpenseSplit> splits) {
+                   String splitType, ExpenseCategory category, LocalDateTime date, Set<ExpenseSplit> splits) {
         this.expenseId = expenseId;
         this.description = description;
         this.amount = amount;
         setPayer(payer);
         setGroup(group);
         this.splitType = splitType;
+        this.category = category;
         this.date = date;
         this.splits = splits;
     }
@@ -112,6 +116,14 @@ public class Expense {
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public ExpenseCategory getCategory() {
+        return category;
+    }
+
+    public void setCategory(ExpenseCategory category) {
+        this.category = category;
     }
 
     public Set<ExpenseSplit> getSplits() {

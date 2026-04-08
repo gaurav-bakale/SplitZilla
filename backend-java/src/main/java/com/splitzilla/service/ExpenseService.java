@@ -1,9 +1,12 @@
 package com.splitzilla.service;
 
 import com.splitzilla.model.Expense;
+import com.splitzilla.model.ExpenseCategory;
 import com.splitzilla.model.ExpenseSplit;
 import com.splitzilla.model.Group;
 import com.splitzilla.model.User;
+import com.splitzilla.pattern.builder.CategorySummaryBuilder;
+import com.splitzilla.pattern.observer.NotificationService;
 import com.splitzilla.pattern.strategy.ISplitStrategy;
 import com.splitzilla.pattern.strategy.SplitStrategyFactory;
 import com.splitzilla.repository.ExpenseRepository;
@@ -39,6 +42,9 @@ public class ExpenseService {
     @Autowired
     private SplitStrategyFactory splitStrategyFactory;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public List<Expense> getExpensesForGroup(String groupId) {
         return expenseRepository.findByGroupId(groupId).stream()
                 .map(this::populateExpenseReferences)
@@ -47,8 +53,9 @@ public class ExpenseService {
 
     public List<Expense> filterExpenses(String groupId, String searchTerm, String memberId,
                                         LocalDateTime startDate, LocalDateTime endDate,
-                                        Double minAmount, Double maxAmount) {
-        List<Expense> expenses = getExpensesForGroup(groupId);
+Double minAmount, Double maxAmount, String category) {
+    List<Expense> expenses = getExpensesForGroup(groupId);
+
 
         return expenses.stream()
                 .filter(expense -> {
@@ -89,6 +96,17 @@ public class ExpenseService {
                     }
                     return true;
                 })
+                .filter(expense -> {
+                    if (category != null && !category.isEmpty()) {
+                        try {
+                            ExpenseCategory cat = ExpenseCategory.valueOf(category.toUpperCase());
+                            return expense.getCategory() == cat;
+                        } catch (IllegalArgumentException e) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -98,7 +116,7 @@ public class ExpenseService {
         List<Expense> expenses = getExpensesForGroup(groupId);
 
         StringBuilder csv = new StringBuilder();
-        csv.append("Date,Description,Amount,Paid By,Split Type,Members\n");
+        csv.append("Date,Description,Amount,Category,Paid By,Split Type,Members\n");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -106,12 +124,14 @@ public class ExpenseService {
             csv.append(expense.getDate().format(formatter)).append(",");
             csv.append("\"").append(expense.getDescription().replace("\"", "\"\"")).append("\"").append(",");
             csv.append(expense.getAmount()).append(",");
+            csv.append(expense.getCategory().name()).append(",");
             csv.append("\"").append(expense.getPayer().getName()).append("\"").append(",");
             csv.append(expense.getSplitType()).append(",");
 
             String members = expense.getSplits().stream()
                     .map(split -> split.getUser().getName() + " ($" +
                             String.format("%.2f", split.getAmount()) + ")")
+
                     .collect(Collectors.joining("; "));
             csv.append("\"").append(members).append("\"");
             csv.append("\n");
@@ -148,15 +168,48 @@ public class ExpenseService {
                 ));
         summary.put("expenses_by_split_type", expensesBySplitType);
 
+        // Category breakdown using CategorySummaryBuilder (Builder Pattern)
+        Map<ExpenseCategory, Double> categoryTotals = new LinkedHashMap<>();
+        Map<ExpenseCategory, Integer> categoryCounts = new LinkedHashMap<>();
+        for (Expense expense : expenses) {
+            ExpenseCategory cat = expense.getCategory();
+            categoryTotals.merge(cat, expense.getAmount(), Double::sum);
+            categoryCounts.merge(cat, 1, Integer::sum);
+        }
+
+        ExpenseCategory topCategory = categoryTotals.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+        Double topAmount = topCategory != null ? categoryTotals.get(topCategory) : 0.0;
+
+        Map<String, Object> categoryBreakdown = new CategorySummaryBuilder()
+                .withCategoryTotals(categoryTotals)
+                .withCategoryCounts(categoryCounts)
+                .withTopCategory(topCategory != null ? topCategory.name() : null, topAmount)
+                .build();
+        summary.put("category_breakdown", categoryBreakdown);
+
         return summary;
     }
 
     public Expense createExpense(String description, Double amount, String splitType,
-                                 String groupId, String payerEmail) {
-        Group group = populateGroup(groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found")));
+String groupId, String payerEmail, String categoryStr) {
+    Group group = populateGroup(groupRepository.findById(groupId)
+            .orElseThrow(() -> new RuntimeException("Group not found")));
+
         User payer = userRepository.findByEmail(payerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ExpenseCategory category = ExpenseCategory.GENERAL;
+        if (categoryStr != null && !categoryStr.isEmpty()) {
+            try {
+                category = ExpenseCategory.valueOf(categoryStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid category: " + categoryStr +
+                        ". Valid values: FOOD, ACCOMMODATION, TRANSPORT, ENTERTAINMENT, UTILITIES, SHOPPING, GENERAL");
+            }
+        }
 
         Expense expense = new Expense();
         expense.setDescription(description);
@@ -164,6 +217,7 @@ public class ExpenseService {
         expense.setSplitType(splitType);
         expense.setPayer(payer);
         expense.setGroup(group);
+        expense.setCategory(category);
 
         List<String> memberIds = new ArrayList<>(group.getMemberIds());
 
@@ -182,7 +236,26 @@ public class ExpenseService {
         }
         expense.setSplits(expenseSplits);
 
-        return populateExpenseReferences(expenseRepository.save(expense));
+    Expense saved = expenseRepository.save(expense);
+
+    // Fire observer event after the expense is persisted
+    List<String> groupMemberIds = group.getMembers().stream()
+            .map(User::getUserId)
+            .collect(Collectors.toList());
+
+    Map<String, Object> event = new HashMap<>();
+    event.put("type", "expense_added");
+    event.put("group_id", groupId);
+    event.put("payer_id", payer.getUserId());
+    event.put("payer_name", payer.getName());
+    event.put("expense_description", description);
+    event.put("amount", amount);
+    event.put("category", category.name());
+    event.put("group_members", groupMemberIds);
+    notificationService.notifyObservers(event);
+
+    return populateExpenseReferences(saved);  
+
     }
 
     public Map<String, Object> getBalancesForGroup(String groupId) {
