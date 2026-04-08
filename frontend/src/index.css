@@ -75,7 +75,10 @@ code {
 
   .auth-title {
     @apply mt-6 text-4xl font-semibold tracking-tight sm:text-5xl;
-    color: #f5f9ff;
+    background: linear-gradient(135deg, #f5f9ff 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .auth-subtitle {
