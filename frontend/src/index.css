@@ -135,17 +135,27 @@ code {
   }
 
   .auth-button {
-    @apply inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold text-white transition duration-200;
-    background: var(--auth-accent);
-    box-shadow: none;
+    @apply inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold text-white transition-all duration-300;
+    background: linear-gradient(135deg, var(--auth-accent), var(--auth-accent-strong));
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    transform: translateY(0);
   }
 
   .auth-button:hover {
-    background: var(--auth-accent-strong);
+    background: linear-gradient(135deg, var(--auth-accent-strong), var(--auth-accent));
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+    transform: translateY(-2px);
+  }
+
+  .auth-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
   }
 
   .auth-button:disabled {
     @apply cursor-not-allowed opacity-60;
+    transform: none;
+    box-shadow: none;
   }
 
   .auth-error {
