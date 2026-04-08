@@ -4,11 +4,9 @@ import com.splitzilla.model.Group;
 import com.splitzilla.pattern.factory.GroupFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 public class FactoryPatternTest {
 
     private GroupFactory groupFactory;

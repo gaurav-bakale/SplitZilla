@@ -4,7 +4,6 @@ import com.splitzilla.pattern.observer.IObserver;
 import com.splitzilla.pattern.observer.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 public class ObserverPatternTest {
 
     private NotificationService notificationService;
