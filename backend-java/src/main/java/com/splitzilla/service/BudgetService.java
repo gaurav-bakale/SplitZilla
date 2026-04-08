@@ -10,8 +10,8 @@ import com.splitzilla.repository.GroupBudgetRepository;
 import com.splitzilla.repository.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -51,9 +51,13 @@ public class BudgetService {
 
         GroupBudget budget = groupBudgetRepository.findByGroupId(groupId)
                 .orElseGet(GroupBudget::new);
+        if (budget.getCreatedAt() == null) {
+            budget.setCreatedAt(LocalDateTime.now());
+        }
         budget.setGroupId(groupId);
         budget.setAmount(amount);
         budget.setWarningThreshold(threshold);
+        budget.setUpdatedAt(LocalDateTime.now());
         GroupBudget saved = groupBudgetRepository.save(budget);
 
         return buildReport(saved, currentSpending(groupId));
@@ -74,7 +78,6 @@ public class BudgetService {
     /**
      * Remove the budget for a group.
      */
-    @Transactional
     public void deleteBudget(String groupId) {
         validateGroup(groupId);
         if (groupBudgetRepository.findByGroupId(groupId).isEmpty()) {
