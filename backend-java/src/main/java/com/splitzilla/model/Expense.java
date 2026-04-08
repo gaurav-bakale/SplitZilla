@@ -6,7 +6,9 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,6 +41,8 @@ public class Expense {
     private ExpenseCategory category = ExpenseCategory.GENERAL;
 
     private LocalDateTime date = LocalDateTime.now();
+
+    private List<String> appliedRuleSummaries = new ArrayList<>();
 
     @JsonIgnore
     private Set<ExpenseSplit> splits = new HashSet<>();
@@ -147,5 +151,13 @@ public class Expense {
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+    }
+
+    public List<String> getAppliedRuleSummaries() {
+        return appliedRuleSummaries;
+    }
+
+    public void setAppliedRuleSummaries(List<String> appliedRuleSummaries) {
+        this.appliedRuleSummaries = appliedRuleSummaries;
     }
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
-import { Plus, Users, DollarSign, CheckCircle2, Search, ArrowRight, WalletCards, Activity, Orbit, TimerReset, Loader } from 'lucide-react';
+import { Plus, Users, DollarSign, CheckCircle2, Search, ArrowRight, WalletCards, Activity, Orbit, TimerReset, Loader, ShieldAlert, Trash2 } from 'lucide-react';
 
 const GroupDetail = () => {
   const { groupId } = useParams();
@@ -10,15 +10,27 @@ const GroupDetail = () => {
   const [expenses, setExpenses] = useState([]);
   const [balances, setBalances] = useState(null);
   const [settlementOverview, setSettlementOverview] = useState(null);
+  const [exceptionRules, setExceptionRules] = useState([]);
   const [settlementError, setSettlementError] = useState('');
   const [pageLoading, setPageLoading] = useState(true);
   const [pageError, setPageError] = useState('');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showMemberModal, setShowMemberModal] = useState(false);
+  const [showRuleModal, setShowRuleModal] = useState(false);
   const [expenseData, setExpenseData] = useState({
     description: '',
     amount: '',
-    split_type: 'equal'
+    split_type: 'equal',
+    category: 'GENERAL'
+  });
+  const [ruleData, setRuleData] = useState({
+    name: '',
+    description: '',
+    rule_type: 'EXCLUDE_MEMBER',
+    target_member_id: '',
+    applies_to_category: '',
+    value: '',
+    priority: 100,
   });
   const [memberEmail, setMemberEmail] = useState('');
   const [expenseSearch, setExpenseSearch] = useState('');
@@ -36,11 +48,12 @@ const GroupDetail = () => {
     setPageLoading(true);
     setPageError('');
     try {
-      const [groupRes, expensesRes, balancesRes, settlementsRes] = await Promise.allSettled([
+      const [groupRes, expensesRes, balancesRes, settlementsRes, rulesRes] = await Promise.allSettled([
         api.get(`/api/groups/${groupId}`),
         api.get(`/api/expenses/group/${groupId}`),
         api.get(`/api/expenses/balances/group/${groupId}`),
-        api.get(`/api/settlements/group/${groupId}`)
+        api.get(`/api/settlements/group/${groupId}`),
+        api.get(`/api/groups/${groupId}/exception-rules`)
       ]);
 
       if (groupRes.status !== 'fulfilled' || expensesRes.status !== 'fulfilled' || balancesRes.status !== 'fulfilled') {
@@ -50,6 +63,7 @@ const GroupDetail = () => {
       setGroup(groupRes.value.data);
       setExpenses(expensesRes.value.data);
       setBalances(balancesRes.value.data);
+      setExceptionRules(rulesRes.status === 'fulfilled' ? rulesRes.value.data : []);
 
       if (settlementsRes.status === 'fulfilled') {
         setSettlementOverview(settlementsRes.value.data);
@@ -122,7 +136,7 @@ const GroupDetail = () => {
         group_id: groupId
       });
       setShowExpenseModal(false);
-      setExpenseData({ description: '', amount: '', split_type: 'equal' });
+      setExpenseData({ description: '', amount: '', split_type: 'equal', category: 'GENERAL' });
       fetchGroupData();
     } catch (error) {
       console.error('Error adding expense:', error);
@@ -146,6 +160,42 @@ const GroupDetail = () => {
     } catch (error) {
       console.error('Error adding member:', error);
       alert(error.response?.data?.detail || 'Failed to add member');
+    }
+  };
+
+  const handleAddRule = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post(`/api/groups/${groupId}/exception-rules`, {
+        ...ruleData,
+        value: ruleData.value === '' ? null : parseFloat(ruleData.value),
+        priority: parseInt(ruleData.priority, 10),
+        applies_to_category: ruleData.applies_to_category || null,
+      });
+      setShowRuleModal(false);
+      setRuleData({
+        name: '',
+        description: '',
+        rule_type: 'EXCLUDE_MEMBER',
+        target_member_id: '',
+        applies_to_category: '',
+        value: '',
+        priority: 100,
+      });
+      fetchGroupData();
+    } catch (error) {
+      console.error('Error adding exception rule:', error);
+      alert(error.response?.data?.error || 'Failed to add exception rule');
+    }
+  };
+
+  const handleDeleteRule = async (ruleId) => {
+    try {
+      await api.delete(`/api/groups/${groupId}/exception-rules/${ruleId}`);
+      fetchGroupData();
+    } catch (error) {
+      console.error('Error deleting exception rule:', error);
+      alert(error.response?.data?.error || 'Failed to delete exception rule');
     }
   };
 
@@ -470,6 +520,55 @@ const GroupDetail = () => {
             </div>
           </div>
 
+          <div className="mb-8 rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-100">Exception Rules Engine</h2>
+                <p className="mt-2 text-sm text-slate-400">Build smart split exceptions like exclusions, fixed shares, and caps for this group.</p>
+              </div>
+              <button
+                onClick={() => setShowRuleModal(true)}
+                className="inline-flex items-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+              >
+                <ShieldAlert className="mr-2 h-4 w-4" />
+                Add Rule
+              </button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {exceptionRules.map((rule) => (
+                <div key={rule.rule_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-100">{rule.name}</p>
+                      <p className="mt-2 text-xs uppercase tracking-[0.18em] text-sky-300">{rule.rule_type}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRule(rule.rule_id)}
+                      className="rounded-full border border-slate-700 p-2 text-slate-400 transition hover:border-rose-400/30 hover:text-rose-300"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-2 text-sm text-slate-400">
+                    <p>Target: <span className="text-slate-200">{rule.target_member_name || 'Unknown member'}</span></p>
+                    <p>Category: <span className="text-slate-200">{rule.applies_to_category || 'Any'}</span></p>
+                    {rule.value !== null && rule.value !== undefined && (
+                      <p>Value: <span className="text-slate-200">{rule.value}</span></p>
+                    )}
+                    <p>Priority: <span className="text-slate-200">{rule.priority}</span></p>
+                    {rule.description && <p className="pt-2 text-xs leading-6 text-slate-500">{rule.description}</p>}
+                  </div>
+                </div>
+              ))}
+              {exceptionRules.length === 0 && (
+                <p className="rounded-[1.5rem] border border-dashed border-slate-800 bg-slate-950 p-6 text-sm text-slate-400">
+                  No exception rules yet. Add one to make shared expenses behave more like real life.
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -505,7 +604,7 @@ const GroupDetail = () => {
                     <div>
                       <h3 className="text-lg font-medium text-slate-100">{expense.description}</h3>
                       <p className="mt-1 text-sm text-slate-400">
-                        Split: {expense.split_type} | {new Date(expense.date).toLocaleDateString()}
+                        Split: {expense.split_type} | Category: {expense.category} | {new Date(expense.date).toLocaleDateString()}
                       </p>
                       {expense.paid_by_name && (
                         <p className="mt-1 text-sm text-sky-300">
@@ -518,6 +617,18 @@ const GroupDetail = () => {
                       <ArrowRight className="ml-auto mt-3 h-4 w-4 text-cyan-300" />
                     </div>
                   </div>
+                  {expense.applied_rule_summaries?.length > 0 && (
+                    <div className="mt-4 rounded-2xl border border-sky-500/15 bg-sky-500/5 p-3">
+                      <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Applied Exception Rules</p>
+                      <div className="mt-2 space-y-1">
+                        {expense.applied_rule_summaries.map((summary, index) => (
+                          <p key={`${expense.expense_id}-rule-${index}`} className="text-sm text-slate-300">
+                            {summary}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {expenses.filter((e) =>
@@ -572,6 +683,22 @@ const GroupDetail = () => {
                           />
                         </div>
                         <div>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Category</label>
+                          <select
+                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            value={expenseData.category}
+                            onChange={(e) => setExpenseData({ ...expenseData, category: e.target.value })}
+                          >
+                            <option value="GENERAL">General</option>
+                            <option value="FOOD">Food</option>
+                            <option value="ACCOMMODATION">Accommodation</option>
+                            <option value="TRANSPORT">Transport</option>
+                            <option value="ENTERTAINMENT">Entertainment</option>
+                            <option value="UTILITIES">Utilities</option>
+                            <option value="SHOPPING">Shopping</option>
+                          </select>
+                        </div>
+                        <div>
                           <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Split Type</label>
                           <select
                             className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
@@ -595,6 +722,136 @@ const GroupDetail = () => {
                       <button
                         type="button"
                         onClick={() => setShowExpenseModal(false)}
+                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showRuleModal && (
+            <div className="fixed inset-0 z-40 overflow-y-auto">
+              <div className="flex min-h-screen items-center justify-center px-4 py-10">
+                <div
+                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  onClick={() => setShowRuleModal(false)}
+                />
+                <div className="relative w-full max-w-2xl overflow-hidden rounded-[2rem] border border-cyan-400/15 bg-slate-900/90 shadow-[0_35px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+                  <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(92,225,230,0.06),transparent_35%,rgba(168,85,247,0.08)_70%,transparent)]" />
+                  <form onSubmit={handleAddRule}>
+                    <div className="relative px-6 pb-6 pt-7 sm:px-8 sm:pb-8">
+                      <div className="mb-6">
+                        <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
+                          Exception Rule
+                        </span>
+                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-100">
+                          Add smart split rule
+                        </h3>
+                      </div>
+                      <div className="space-y-5">
+                        <div>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Rule Name</label>
+                          <input
+                            type="text"
+                            required
+                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            value={ruleData.name}
+                            onChange={(e) => setRuleData({ ...ruleData, name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Rule Type</label>
+                          <select
+                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            value={ruleData.rule_type}
+                            onChange={(e) => setRuleData({ ...ruleData, rule_type: e.target.value })}
+                          >
+                            <option value="EXCLUDE_MEMBER">Exclude member</option>
+                            <option value="FIXED_AMOUNT">Fixed amount</option>
+                            <option value="FIXED_PERCENTAGE">Fixed percentage</option>
+                            <option value="CAP_AMOUNT">Cap amount</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Target Member</label>
+                          <select
+                            required
+                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            value={ruleData.target_member_id}
+                            onChange={(e) => setRuleData({ ...ruleData, target_member_id: e.target.value })}
+                          >
+                            <option value="">Select a member</option>
+                            {group?.members?.map((member) => (
+                              <option key={member.user_id} value={member.user_id}>{member.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="grid gap-5 sm:grid-cols-2">
+                          <div>
+                            <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Category Scope</label>
+                            <select
+                              className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                              value={ruleData.applies_to_category}
+                              onChange={(e) => setRuleData({ ...ruleData, applies_to_category: e.target.value })}
+                            >
+                              <option value="">Any category</option>
+                              <option value="GENERAL">General</option>
+                              <option value="FOOD">Food</option>
+                              <option value="ACCOMMODATION">Accommodation</option>
+                              <option value="TRANSPORT">Transport</option>
+                              <option value="ENTERTAINMENT">Entertainment</option>
+                              <option value="UTILITIES">Utilities</option>
+                              <option value="SHOPPING">Shopping</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Priority</label>
+                            <input
+                              type="number"
+                              className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                              value={ruleData.priority}
+                              onChange={(e) => setRuleData({ ...ruleData, priority: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        {ruleData.rule_type !== 'EXCLUDE_MEMBER' && (
+                          <div>
+                            <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Rule Value</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              required
+                              className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                              value={ruleData.value}
+                              onChange={(e) => setRuleData({ ...ruleData, value: e.target.value })}
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Description</label>
+                          <textarea
+                            rows="3"
+                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            value={ruleData.description}
+                            onChange={(e) => setRuleData({ ...ruleData, description: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="relative flex flex-col-reverse gap-3 border-t border-cyan-400/10 bg-slate-950/60 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+                      <button
+                        type="submit"
+                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+                      >
+                        Save rule
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowRuleModal(false)}
                         className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
                       >
                         Cancel

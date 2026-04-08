@@ -45,6 +45,12 @@ public class ExpenseService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private ExceptionRuleService exceptionRuleService;
+
+    @Autowired
+    private ExpenseRuleEngineService expenseRuleEngineService;
+
     public List<Expense> getExpensesForGroup(String groupId) {
         return expenseRepository.findByGroupId(groupId).stream()
                 .map(this::populateExpenseReferences)
@@ -219,9 +225,16 @@ public class ExpenseService {
 
         ISplitStrategy strategy = splitStrategyFactory.getStrategy(splitType);
         Map<String, Double> splits = strategy.split(amount, memberIds, new HashMap<>());
+        ExpenseRuleEngineService.RuleApplicationResult ruleResult = expenseRuleEngineService.applyRules(
+                amount,
+                group,
+                splits,
+                category,
+                exceptionRuleService.getActiveRulesForGroup(groupId)
+        );
 
         Set<ExpenseSplit> expenseSplits = new HashSet<>();
-        for (Map.Entry<String, Double> entry : splits.entrySet()) {
+        for (Map.Entry<String, Double> entry : ruleResult.getAdjustedSplits().entrySet()) {
             userRepository.findById(entry.getKey()).ifPresent(user -> {
                 ExpenseSplit split = new ExpenseSplit();
                 split.setExpense(expense);
@@ -231,6 +244,7 @@ public class ExpenseService {
             });
         }
         expense.setSplits(expenseSplits);
+        expense.setAppliedRuleSummaries(ruleResult.getAppliedRuleSummaries());
 
         Expense saved = expenseRepository.save(expense);
 
