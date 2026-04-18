@@ -29,11 +29,6 @@ const Register = () => {
 
   return (
     <div className="auth-shell">
-      <div className="auth-gridline" />
-      <div className="auth-orbit left-8 top-10 h-56 w-56 bg-sky-500/20" />
-      <div className="auth-orbit bottom-0 right-10 h-72 w-72 bg-fuchsia-500/20" />
-      <div className="auth-orbit left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 bg-cyan-400/15" />
-
       <div className="auth-grid">
         <section className="auth-brand-panel">
           <span className="auth-kicker">Create Account</span>
@@ -43,30 +38,30 @@ const Register = () => {
           </p>
 
           <div className="mt-10 space-y-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-sky-300" />
-                <p className="text-sm font-medium text-slate-100">Secure sign-in</p>
+                <Shield className="h-5 w-5 text-primary-600" />
+                <p className="text-sm font-medium text-slate-900">Secure sign-in</p>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 Create an account and access your groups from a protected workspace.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center gap-3">
-                <Layers3 className="h-5 w-5 text-sky-300" />
-                <p className="text-sm font-medium text-slate-100">Group-ready setup</p>
+                <Layers3 className="h-5 w-5 text-primary-600" />
+                <p className="text-sm font-medium text-slate-900">Group-ready setup</p>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 Start with a clean account and organize shared spending by group.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-sky-300" />
-                <p className="text-sm font-medium text-slate-100">Built for shared decisions</p>
+                <Users className="h-5 w-5 text-primary-600" />
+                <p className="text-sm font-medium text-slate-900">Built for shared decisions</p>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 Invite members, track activity, and keep expenses transparent.
               </p>
             </div>
@@ -138,7 +133,7 @@ const Register = () => {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
 
-              <div className="pt-2 text-center text-sm text-slate-400">
+              <div className="pt-2 text-center text-sm text-slate-600">
                 Already inside the network?{' '}
                 <Link to="/login" className="auth-link">
                   Sign in

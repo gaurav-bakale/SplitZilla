@@ -11,16 +11,12 @@ const GroupDetail = lazy(() => import('./pages/GroupDetail'));
 
 function RouteFallback() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-2xl rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-10 text-center shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-          <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">Loading Route</p>
-          <h1 className="mt-5 font-['Orbitron'] text-3xl font-bold uppercase tracking-[0.12em] text-slate-100">
-            Preparing Interface
-          </h1>
-          <div className="mx-auto mt-8 h-2 w-full max-w-md overflow-hidden rounded-full bg-slate-800">
-            <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400" />
-          </div>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-10 text-center shadow-card-md">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Loading</p>
+        <p className="mt-4 text-lg font-semibold text-slate-900">SplitZilla</p>
+        <div className="mx-auto mt-8 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full w-2/3 animate-pulse rounded-full bg-primary-600" />
         </div>
       </div>
     </div>
@@ -37,7 +33,7 @@ function App() {
         }}
       >
         <Suspense fallback={<RouteFallback />}>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-slate-50">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

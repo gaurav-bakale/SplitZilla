@@ -70,6 +70,9 @@ const ExpenseFilter = ({ groupId, onFilteredExpenses, members }) => {
     }
   };
 
+  const inputCls =
+    'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20';
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -81,18 +84,20 @@ const ExpenseFilter = ({ groupId, onFilteredExpenses, members }) => {
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
-            className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className={`${inputCls} py-2.5 pl-10 pr-4 placeholder:text-slate-400`}
           />
         </div>
         <button
+          type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className="rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-slate-300 transition hover:border-slate-600 hover:text-white"
+          className="rounded-lg border border-slate-300 bg-white p-2.5 text-slate-600 shadow-card transition hover:bg-slate-50"
         >
           <Filter className="h-4 w-4" />
         </button>
         <button
+          type="button"
           onClick={exportToCsv}
-          className="rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-slate-300 transition hover:border-slate-600 hover:text-white"
+          className="rounded-lg border border-slate-300 bg-white p-2.5 text-slate-600 shadow-card transition hover:bg-slate-50"
           title="Export to CSV"
         >
           <Download className="h-4 w-4" />
@@ -100,16 +105,16 @@ const ExpenseFilter = ({ groupId, onFilteredExpenses, members }) => {
       </div>
 
       {showFilters && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-2">Member</label>
+              <label className="mb-2 block text-xs font-medium text-slate-600">Member</label>
               <select
                 value={filters.memberId}
                 onChange={(e) => handleFilterChange('memberId', e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className={inputCls}
               >
-                <option value="">All Members</option>
+                <option value="">All members</option>
                 {members?.map((member) => (
                   <option key={member.user_id} value={member.user_id}>
                     {member.name}
@@ -120,58 +125,60 @@ const ExpenseFilter = ({ groupId, onFilteredExpenses, members }) => {
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">Min Amount</label>
+                <label className="mb-2 block text-xs font-medium text-slate-600">Min amount</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={filters.minAmount}
                   onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  className={`${inputCls} tabular-nums`}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">Max Amount</label>
+                <label className="mb-2 block text-xs font-medium text-slate-600">Max amount</label>
                 <input
                   type="number"
-                  placeholder="∞"
+                  placeholder="Any"
                   value={filters.maxAmount}
                   onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  className={`${inputCls} tabular-nums`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-2">Start Date</label>
+              <label className="mb-2 block text-xs font-medium text-slate-600">Start date</label>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className={inputCls}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-2">End Date</label>
+              <label className="mb-2 block text-xs font-medium text-slate-600">End date</label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className={inputCls}
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3 pt-2">
             <button
+              type="button"
               onClick={applyFilters}
-              className="flex-1 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+              className="flex-1 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
             >
-              Apply Filters
+              Apply filters
             </button>
             <button
+              type="button"
               onClick={clearFilters}
-              className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:text-white"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-card transition hover:bg-slate-50"
             >
               <X className="h-4 w-4" />
             </button>

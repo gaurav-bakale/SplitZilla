@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,38 +6,45 @@
 
 @layer base {
   :root {
-    --auth-ink: #e5edf8;
-    --auth-muted: #8da0bd;
-    --auth-panel: rgba(15, 23, 42, 0.92);
-    --auth-panel-border: rgba(51, 65, 85, 0.9);
-    --auth-accent: #0ea5e9;
-    --auth-accent-strong: #38bdf8;
+    --app-surface: #f8fafc;
+    --app-card: #ffffff;
+    --app-border: #e2e8f0;
+    --app-muted: #64748b;
+    --app-ink: #0f172a;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
   }
 
   html {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: Inter, system-ui, sans-serif;
   }
 
   body {
     margin: 0;
     min-height: 100vh;
-    font-family: 'Space Grotesk', sans-serif;
-    background: #020617;
-    color: var(--auth-ink);
+    font-family: Inter, system-ui, sans-serif;
+    background: var(--app-surface);
+    color: var(--app-ink);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer components {
   .auth-shell {
     @apply relative min-h-screen overflow-hidden;
-    background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   }
 
   .auth-grid {
@@ -45,10 +52,7 @@ code {
   }
 
   .auth-brand-panel {
-    @apply relative overflow-hidden rounded-[2rem] border p-8 sm:p-10 lg:p-12;
-    background: #0f172a;
-    border-color: #1e293b;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+    @apply relative overflow-hidden rounded-xl border border-slate-200 bg-white p-8 shadow-card-md sm:p-10 lg:p-12;
   }
 
   .auth-brand-panel::before {
@@ -56,10 +60,7 @@ code {
   }
 
   .auth-panel {
-    @apply relative overflow-hidden rounded-[2rem] border p-6 sm:p-8;
-    background: var(--auth-panel);
-    border-color: var(--auth-panel-border);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+    @apply relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-card-md sm:p-8;
   }
 
   .auth-panel::before {
@@ -67,20 +68,15 @@ code {
   }
 
   .auth-kicker {
-    @apply inline-flex items-center rounded-full border px-4 py-1 text-xs uppercase tracking-[0.22em];
-    color: var(--auth-accent);
-    border-color: rgba(14, 165, 233, 0.22);
-    background: rgba(14, 165, 233, 0.08);
+    @apply inline-flex items-center rounded-md border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary-700;
   }
 
   .auth-title {
-    @apply mt-6 text-4xl font-semibold tracking-tight sm:text-5xl;
-    color: #f5f9ff;
+    @apply mt-6 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl;
   }
 
   .auth-subtitle {
-    @apply mt-4 max-w-xl text-base leading-7 sm:text-lg;
-    color: var(--auth-muted);
+    @apply mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg;
   }
 
   .auth-stat-grid {
@@ -88,90 +84,59 @@ code {
   }
 
   .auth-stat {
-    @apply rounded-2xl border p-4;
-    background: #020617;
-    border-color: #1e293b;
+    @apply rounded-lg border border-slate-200 bg-slate-50 p-4;
   }
 
   .auth-stat-label {
-    @apply text-[11px] uppercase tracking-[0.3em];
-    color: var(--auth-muted);
+    @apply text-xs font-medium uppercase tracking-wide text-slate-500;
   }
 
   .auth-stat-value {
-    @apply mt-3 text-2xl font-bold;
-    color: #f8fbff;
+    @apply mt-3 text-2xl font-semibold tabular-nums text-slate-900;
   }
 
   .auth-form-title {
-    @apply text-2xl font-semibold tracking-tight;
-    color: #f5f9ff;
+    @apply text-2xl font-semibold tracking-tight text-slate-900;
   }
 
   .auth-form-copy {
-    @apply mt-3 text-sm leading-6;
-    color: var(--auth-muted);
+    @apply mt-3 text-sm leading-6 text-slate-600;
   }
 
   .auth-label {
-    @apply mb-2 block text-xs font-medium uppercase tracking-[0.18em];
-    color: #adc2e7;
+    @apply mb-2 block text-sm font-medium text-slate-700;
   }
 
   .auth-input {
-    @apply block w-full rounded-2xl border px-4 py-3 text-sm outline-none transition duration-200;
-    background: #020617;
-    border-color: #334155;
-    color: #f5f9ff;
-  }
-
-  .auth-input::placeholder {
-    color: #60759a;
-  }
-
-  .auth-input:focus {
-    border-color: rgba(14, 165, 233, 0.55);
-    box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.15);
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none ring-offset-2 transition duration-150;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20;
   }
 
   .auth-button {
-    @apply inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold text-white transition-all duration-300;
-    background: linear-gradient(135deg, var(--auth-accent), var(--auth-accent-strong));
-    box-shadow: 0 4px 18px rgba(99, 102, 241, 0.5);
-    transform: translateY(0);
+    @apply inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold text-white transition duration-150;
+    @apply bg-primary-600 shadow-card hover:bg-primary-700;
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600;
   }
 
   .auth-button:hover {
-    background: linear-gradient(135deg, var(--auth-accent-strong), var(--auth-accent));
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
-    transform: translateY(-2px);
+    @apply bg-primary-700;
   }
 
   .auth-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    @apply bg-primary-800;
   }
 
   .auth-button:disabled {
-    @apply cursor-not-allowed opacity-60;
-    transform: none;
-    box-shadow: none;
+    @apply cursor-not-allowed opacity-60 shadow-none;
   }
 
   .auth-error {
-    @apply rounded-2xl border px-4 py-3 text-sm;
-    color: #ffd8e3;
-    background: rgba(91, 11, 40, 0.45);
-    border-color: rgba(255, 122, 157, 0.35);
+    @apply rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800;
   }
 
   .auth-link {
-    @apply text-sm font-medium transition;
-    color: var(--auth-accent);
-  }
-
-  .auth-link:hover {
-    color: #d9fbff;
+    @apply text-sm font-medium text-primary-600 transition hover:text-primary-800;
   }
 
   .auth-orbit {
