@@ -201,10 +201,10 @@ const GroupDetail = () => {
 
   if (pageLoading && !group) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Navbar />
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-cyan-400/10 bg-slate-900/60 p-8 text-slate-400 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-slate-600 shadow-card-md">
             Loading group workspace...
           </div>
         </div>
@@ -214,10 +214,10 @@ const GroupDetail = () => {
 
   if (pageError && !group) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Navbar />
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-rose-400/20 bg-rose-400/10 p-8 text-rose-100 shadow-[0_24px_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-red-900 shadow-card-md">
             {pageError}
           </div>
         </div>
@@ -226,41 +226,41 @@ const GroupDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
       <div className="relative">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+          <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-card-md">
             <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
               <div>
-                <span className="inline-flex items-center rounded-full border border-sky-500/20 bg-sky-500/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-sky-300">
+                <span className="inline-flex items-center rounded-md border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-medium text-primary-800">
                   Group
                 </span>
-                <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl">
+                <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
                   {group.name}
                 </h1>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
                   {group.description || 'Track shared expenses, review balances, and manage settlements.'}
                 </p>
               </div>
 
               <div className="grid gap-4 self-end">
-                <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Members Online</p>
-                      <p className="mt-2 text-3xl font-semibold text-slate-100">{group.members?.length || 0}</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Members Online</p>
+                      <p className="mt-2 text-3xl font-semibold text-slate-900">{group.members?.length || 0}</p>
                     </div>
-                    <Users className="h-5 w-5 text-sky-300" />
+                    <Users className="h-5 w-5 text-primary-700" />
                   </div>
                 </div>
-                <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Expense Feed</p>
-                      <p className="mt-2 text-lg font-semibold text-slate-100">{expenses.length} records tracked</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Expense Feed</p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">{expenses.length} records tracked</p>
                     </div>
-                    <Activity className="h-5 w-5 text-slate-300" />
+                    <Activity className="h-5 w-5 text-slate-700" />
                   </div>
                 </div>
               </div>
@@ -268,45 +268,45 @@ const GroupDetail = () => {
           </div>
 
           <div className="mb-8 mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-card-md">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-100">Members</h2>
-                  <p className="mt-2 text-sm text-slate-400">Everyone currently inside this expense orbit.</p>
+                  <h2 className="text-xl font-semibold text-slate-900">Members</h2>
+                  <p className="mt-2 text-sm text-slate-600">People in this group.</p>
                 </div>
                 <button
                   onClick={() => setShowMemberModal(true)}
-                  className="rounded-2xl border border-slate-700 bg-slate-950 p-3 text-sky-300 transition hover:border-slate-600 hover:text-white"
+                  className="rounded-lg border border-slate-300 bg-white p-3 text-primary-700 transition hover:border-primary-300 hover:bg-primary-50"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
               <div className="space-y-2">
                 {group.members?.map((member) => (
-                  <div key={member.user_id} className="flex items-center rounded-2xl border border-slate-800 bg-slate-950 p-3">
-                    <Users className="mr-3 h-4 w-4 text-sky-300" />
-                    <span className="text-sm text-slate-200">{member.name}</span>
+                  <div key={member.user_id} className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <Users className="mr-3 h-4 w-4 text-primary-700" />
+                    <span className="text-sm text-slate-800">{member.name}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)] lg:col-span-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-card-md lg:col-span-2">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-100">Balances</h2>
-                  <p className="mt-2 text-sm text-slate-400">See who owes, who is ahead, and where the group stands.</p>
+                  <h2 className="text-xl font-semibold text-slate-900">Balances</h2>
+                  <p className="mt-2 text-sm text-slate-600">See who owes, who is ahead, and where the group stands.</p>
                 </div>
-                <span className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sky-300">
+                <span className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-primary-700">
                   <DollarSign className="h-5 w-5" />
                 </span>
               </div>
               {balances && (
                 <div className="space-y-2">
                   {balances.balances?.map((balance) => (
-                    <div key={balance.user_id} className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                      <span className="text-sm font-medium text-slate-200">{balance.user_name}</span>
-                      <span className={`text-sm font-semibold ${balance.balance >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                    <div key={balance.user_id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <span className="text-sm font-medium text-slate-800">{balance.user_name}</span>
+                      <span className={`text-sm font-semibold ${balance.balance >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                         ${Math.abs(balance.balance).toFixed(2)} {balance.balance >= 0 ? 'gets back' : 'owes'}
                       </span>
                     </div>
@@ -317,42 +317,42 @@ const GroupDetail = () => {
           </div>
 
           <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-card-md">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-100">Settlement Orchestration</h2>
-                  <p className="mt-2 text-sm text-slate-400">Generate transfer plans, record partial payments, and track reimbursements until the group is closed out.</p>
+                  <h2 className="text-xl font-semibold text-slate-900">Settlement Orchestration</h2>
+                  <p className="mt-2 text-sm text-slate-600">Generate transfer plans, record partial payments, and track reimbursements until the group is closed out.</p>
                 </div>
-                <span className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sky-300">
+                <span className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-primary-700">
                   <Orbit className="h-5 w-5" />
                 </span>
               </div>
               {settlementError ? (
-                <p className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
+                <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                   {settlementError}
                 </p>
               ) : (
                 <div className="space-y-6">
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Open Transfers</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-100">{settlementMetrics.open_transfers || 0}</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Open Transfers</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{settlementMetrics.open_transfers || 0}</p>
                     </div>
-                    <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Outstanding</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-100">{formatCurrency(settlementMetrics.total_outstanding)}</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Outstanding</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{formatCurrency(settlementMetrics.total_outstanding)}</p>
                     </div>
-                    <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Paid Through</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-100">{formatCurrency(settlementMetrics.total_paid)}</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Paid Through</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{formatCurrency(settlementMetrics.total_paid)}</p>
                     </div>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <h3 className="text-lg font-semibold text-slate-100">Recommended transfer plan</h3>
-                        <p className="mt-2 text-sm text-slate-400">
+                        <h3 className="text-lg font-semibold text-slate-900">Recommended transfer plan</h3>
+                        <p className="mt-2 text-sm text-slate-600">
                           {activeSettlements.length
                             ? 'An active plan already exists. Continue recording payments until it is complete.'
                             : recommendedPlan.length
@@ -364,7 +364,7 @@ const GroupDetail = () => {
                         type="button"
                         onClick={handleCreateSettlementPlan}
                         disabled={creatingPlan || activeSettlements.length > 0 || !recommendedPlan.length}
-                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {creatingPlan ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <TimerReset className="mr-2 h-4 w-4" />}
                         {creatingPlan ? 'Generating...' : 'Generate Plan'}
@@ -376,31 +376,31 @@ const GroupDetail = () => {
                         {recommendedPlan.map((suggestion) => (
                           <div
                             key={`${suggestion.payer_id}-${suggestion.payee_id}-${suggestion.amount}`}
-                            className="rounded-[1.25rem] border border-slate-800 bg-slate-900 p-4"
+                            className="rounded-lg border border-slate-200 bg-white p-4"
                           >
                             <div className="flex items-center justify-between gap-4">
-                              <p className="text-sm text-slate-100">
+                              <p className="text-sm text-slate-900">
                                 <span className="font-semibold">{suggestion.payer_name}</span>
                                 {' '}pays{' '}
                                 <span className="font-semibold">{suggestion.payee_name}</span>
                               </p>
-                              <span className="text-sm font-semibold text-slate-200">{formatCurrency(suggestion.amount)}</span>
+                              <span className="text-sm font-semibold text-slate-800">{formatCurrency(suggestion.amount)}</span>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="mt-5 text-sm text-slate-400">Everything is already reconciled or covered by active transfers.</p>
+                      <p className="mt-5 text-sm text-slate-600">Everything is already reconciled or covered by active transfers.</p>
                     )}
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-5">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="text-lg font-semibold text-slate-100">Active reimbursements</h3>
-                        <p className="mt-2 text-sm text-slate-400">Track payment progress against each orchestrated transfer.</p>
+                        <h3 className="text-lg font-semibold text-slate-900">Active reimbursements</h3>
+                        <p className="mt-2 text-sm text-slate-600">Track payment progress against each orchestrated transfer.</p>
                       </div>
-                      <span className="rounded-2xl border border-slate-800 bg-slate-900 p-3 text-sky-300">
+                      <span className="rounded-lg border border-slate-200 bg-white p-3 text-primary-700">
                         <WalletCards className="h-5 w-5" />
                       </span>
                     </div>
@@ -408,37 +408,37 @@ const GroupDetail = () => {
                     {activeSettlements.length ? (
                       <div className="mt-5 space-y-4">
                         {activeSettlements.map((settlement) => (
-                          <div key={settlement.settlement_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-900 p-4">
+                          <div key={settlement.settlement_id} className="rounded-lg border border-slate-200 bg-white p-4">
                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                               <div>
-                                <p className="text-sm text-slate-100">
+                                <p className="text-sm text-slate-900">
                                   <span className="font-semibold">{settlement.payer_name}</span>
                                   {' '}pays{' '}
                                   <span className="font-semibold">{settlement.payee_name}</span>
                                 </p>
-                                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
-                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 uppercase tracking-[0.18em] text-sky-300">
+                                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 uppercase tracking-wide text-primary-700">
                                     {settlement.status}
                                   </span>
-                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">
+                                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1">
                                     Planned {formatCurrency(settlement.amount)}
                                   </span>
-                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">
+                                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1">
                                     Paid {formatCurrency(settlement.paid_amount)}
                                   </span>
-                                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">
+                                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1">
                                     Outstanding {formatCurrency(settlement.outstanding_amount)}
                                   </span>
                                 </div>
                               </div>
                               <div className="w-full max-w-xs">
-                                <div className="flex items-center justify-between text-xs text-slate-400">
+                                <div className="flex items-center justify-between text-xs text-slate-600">
                                   <span>Progress</span>
                                   <span>{Number(settlement.progress_percent).toFixed(0)}%</span>
                                 </div>
-                                <div className="mt-2 h-2 rounded-full bg-slate-800">
+                                <div className="mt-2 h-2 rounded-full bg-slate-200">
                                   <div
-                                    className="h-2 rounded-full bg-sky-400 transition-all"
+                                    className="h-2 rounded-lg bg-primary-600 transition-all"
                                     style={{ width: `${Math.min(Number(settlement.progress_percent) || 0, 100)}%` }}
                                   />
                                 </div>
@@ -457,13 +457,13 @@ const GroupDetail = () => {
                                     [settlement.settlement_id]: e.target.value,
                                   }))
                                 }
-                                className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/30 md:max-w-[200px]"
+                                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 md:max-w-[200px]"
                               />
                               <button
                                 type="button"
                                 onClick={() => handleRecordPayment(settlement)}
                                 disabled={payingSettlementId === settlement.settlement_id}
-                                className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {payingSettlementId === settlement.settlement_id ? (
                                   <Loader className="mr-2 h-4 w-4 animate-spin" />
@@ -477,34 +477,34 @@ const GroupDetail = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="mt-5 text-sm text-slate-400">No active reimbursement plan yet.</p>
+                      <p className="mt-5 text-sm text-slate-600">No active reimbursement plan yet.</p>
                     )}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-card-md">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-100">Settlement History</h2>
-                  <p className="mt-2 text-sm text-slate-400">Recorded payment completions inside this group.</p>
+                  <h2 className="text-xl font-semibold text-slate-900">Settlement History</h2>
+                  <p className="mt-2 text-sm text-slate-600">Recorded payment completions inside this group.</p>
                 </div>
-                <span className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sky-300">
+                <span className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-primary-700">
                   <WalletCards className="h-5 w-5" />
                 </span>
               </div>
               {settlementOverview?.completed_settlements?.length ? (
                 <div className="space-y-3">
                   {settlementOverview.completed_settlements.map((settlement) => (
-                    <div key={settlement.settlement_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
-                      <p className="text-sm text-slate-100">
+                    <div key={settlement.settlement_id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-sm text-slate-900">
                         <span className="font-semibold">{settlement.payer_name}</span>
                         {' '}paid{' '}
                         <span className="font-semibold">{settlement.payee_name}</span>
                       </p>
                       <div className="mt-2 flex items-center justify-between text-sm">
-                        <span className="font-semibold text-slate-100">
+                        <span className="font-semibold text-slate-900">
                           {formatCurrency(settlement.amount)}
                         </span>
                         <span className="text-slate-500">
@@ -515,20 +515,20 @@ const GroupDetail = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-slate-400">No settlements recorded yet.</p>
+                <p className="text-slate-600">No settlements recorded yet.</p>
               )}
             </div>
           </div>
 
-          <div className="mb-8 rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+          <div className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-card-md">
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-slate-100">Exception Rules Engine</h2>
-                <p className="mt-2 text-sm text-slate-400">Build smart split exceptions like exclusions, fixed shares, and caps for this group.</p>
+                <h2 className="text-xl font-semibold text-slate-900">Exception Rules Engine</h2>
+                <p className="mt-2 text-sm text-slate-600">Build smart split exceptions like exclusions, fixed shares, and caps for this group.</p>
               </div>
               <button
                 onClick={() => setShowRuleModal(true)}
-                className="inline-flex items-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+                className="inline-flex items-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700"
               >
                 <ShieldAlert className="mr-2 h-4 w-4" />
                 Add Rule
@@ -536,48 +536,48 @@ const GroupDetail = () => {
             </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {exceptionRules.map((rule) => (
-                <div key={rule.rule_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
+                <div key={rule.rule_id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-slate-100">{rule.name}</p>
-                      <p className="mt-2 text-xs uppercase tracking-[0.18em] text-sky-300">{rule.rule_type}</p>
+                      <p className="text-sm font-semibold text-slate-900">{rule.name}</p>
+                      <p className="mt-2 text-xs uppercase tracking-wide text-primary-700">{rule.rule_type}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleDeleteRule(rule.rule_id)}
-                      className="rounded-full border border-slate-700 p-2 text-slate-400 transition hover:border-rose-400/30 hover:text-rose-300"
+                      className="rounded-full border border-slate-300 p-2 text-slate-600 transition hover:border-rose-400/30 hover:text-rose-700"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="mt-4 space-y-2 text-sm text-slate-400">
-                    <p>Target: <span className="text-slate-200">{rule.target_member_name || 'Unknown member'}</span></p>
-                    <p>Category: <span className="text-slate-200">{rule.applies_to_category || 'Any'}</span></p>
+                  <div className="mt-4 space-y-2 text-sm text-slate-600">
+                    <p>Target: <span className="text-slate-800">{rule.target_member_name || 'Unknown member'}</span></p>
+                    <p>Category: <span className="text-slate-800">{rule.applies_to_category || 'Any'}</span></p>
                     {rule.value !== null && rule.value !== undefined && (
-                      <p>Value: <span className="text-slate-200">{rule.value}</span></p>
+                      <p>Value: <span className="text-slate-800">{rule.value}</span></p>
                     )}
-                    <p>Priority: <span className="text-slate-200">{rule.priority}</span></p>
+                    <p>Priority: <span className="text-slate-800">{rule.priority}</span></p>
                     {rule.description && <p className="pt-2 text-xs leading-6 text-slate-500">{rule.description}</p>}
                   </div>
                 </div>
               ))}
               {exceptionRules.length === 0 && (
-                <p className="rounded-[1.5rem] border border-dashed border-slate-800 bg-slate-950 p-6 text-sm text-slate-400">
+                <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
                   No exception rules yet. Add one to make shared expenses behave more like real life.
                 </p>
               )}
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-800 bg-slate-900 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-card-md">
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-slate-100">Expenses</h2>
-                <p className="mt-2 text-sm text-slate-400">Search and review every spend event tied to this group.</p>
+                <h2 className="text-xl font-semibold text-slate-900">Expenses</h2>
+                <p className="mt-2 text-sm text-slate-600">Search and review every spend event tied to this group.</p>
               </div>
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="inline-flex items-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+                className="inline-flex items-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Expense
@@ -590,7 +590,7 @@ const GroupDetail = () => {
                 placeholder="Search expenses..."
                 value={expenseSearch}
                 onChange={(e) => setExpenseSearch(e.target.value)}
-                className="w-full rounded-2xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-sky-500/40 focus:ring-1 focus:ring-sky-500/30"
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
             <div className="space-y-3">
@@ -599,30 +599,30 @@ const GroupDetail = () => {
                   expense.description.toLowerCase().includes(expenseSearch.toLowerCase())
                 )
                 .map((expense) => (
-                <div key={expense.expense_id} className="rounded-[1.5rem] border border-slate-800 bg-slate-950 p-4">
+                <div key={expense.expense_id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-medium text-slate-100">{expense.description}</h3>
-                      <p className="mt-1 text-sm text-slate-400">
+                      <h3 className="text-lg font-medium text-slate-900">{expense.description}</h3>
+                      <p className="mt-1 text-sm text-slate-600">
                         Split: {expense.split_type} | Category: {expense.category} | {new Date(expense.date).toLocaleDateString()}
                       </p>
                       {expense.paid_by_name && (
-                        <p className="mt-1 text-sm text-sky-300">
+                        <p className="mt-1 text-sm text-primary-700">
                           Paid by {expense.paid_by_name}
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold text-slate-100">${expense.amount.toFixed(2)}</p>
-                      <ArrowRight className="ml-auto mt-3 h-4 w-4 text-cyan-300" />
+                      <p className="text-lg font-semibold text-slate-900">${expense.amount.toFixed(2)}</p>
+                      <ArrowRight className="ml-auto mt-3 h-4 w-4 text-primary-700" />
                     </div>
                   </div>
                   {expense.applied_rule_summaries?.length > 0 && (
-                    <div className="mt-4 rounded-2xl border border-sky-500/15 bg-sky-500/5 p-3">
-                      <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Applied Exception Rules</p>
+                    <div className="mt-4 rounded-lg border border-primary-100 bg-primary-50/90 p-3">
+                      <p className="text-xs uppercase tracking-wide text-primary-700">Applied Exception Rules</p>
                       <div className="mt-2 space-y-1">
                         {expense.applied_rule_summaries.map((summary, index) => (
-                          <p key={`${expense.expense_id}-rule-${index}`} className="text-sm text-slate-300">
+                          <p key={`${expense.expense_id}-rule-${index}`} className="text-sm text-slate-700">
                             {summary}
                           </p>
                         ))}
@@ -634,7 +634,7 @@ const GroupDetail = () => {
               {expenses.filter((e) =>
                 e.description.toLowerCase().includes(expenseSearch.toLowerCase())
               ).length === 0 && (
-                <p className="py-8 text-center text-slate-400">
+                <p className="py-8 text-center text-slate-600">
                   {expenseSearch ? 'No expenses match your search' : 'No expenses yet'}
                 </p>
               )}
@@ -645,47 +645,46 @@ const GroupDetail = () => {
             <div className="fixed inset-0 z-40 overflow-y-auto">
               <div className="flex min-h-screen items-center justify-center px-4 py-10">
                 <div
-                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  className="absolute inset-0 bg-slate-900/40"
                   onClick={() => setShowExpenseModal(false)}
                 />
-                <div className="relative w-full max-w-2xl overflow-hidden rounded-[2rem] border border-cyan-400/15 bg-slate-900/90 shadow-[0_35px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-                  <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(92,225,230,0.06),transparent_35%,rgba(168,85,247,0.08)_70%,transparent)]" />
+                <div className="relative w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card-md">
                   <form onSubmit={handleAddExpense}>
                     <div className="relative px-6 pb-6 pt-7 sm:px-8 sm:pb-8">
                       <div className="mb-6">
-                        <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
+                        <span className="inline-flex items-center rounded-md border border-primary-200 bg-primary-50 px-4 py-1 text-xs uppercase tracking-wide text-primary-700">
                           New Expense
                         </span>
-                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-100">
+                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">
                           Add expense
                         </h3>
                       </div>
                       <div className="space-y-5">
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Description</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Description</label>
                           <input
                             type="text"
                             required
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={expenseData.description}
                             onChange={(e) => setExpenseData({ ...expenseData, description: e.target.value })}
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Amount</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Amount</label>
                           <input
                             type="number"
                             step="0.01"
                             required
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={expenseData.amount}
                             onChange={(e) => setExpenseData({ ...expenseData, amount: e.target.value })}
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Category</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Category</label>
                           <select
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={expenseData.category}
                             onChange={(e) => setExpenseData({ ...expenseData, category: e.target.value })}
                           >
@@ -699,9 +698,9 @@ const GroupDetail = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Split Type</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Split Type</label>
                           <select
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={expenseData.split_type}
                             onChange={(e) => setExpenseData({ ...expenseData, split_type: e.target.value })}
                           >
@@ -712,17 +711,17 @@ const GroupDetail = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="relative flex flex-col-reverse gap-3 border-t border-cyan-400/10 bg-slate-950/60 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+                    <div className="relative flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+                        className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700"
                       >
                         Save expense
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowExpenseModal(false)}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
                       >
                         Cancel
                       </button>
@@ -737,36 +736,35 @@ const GroupDetail = () => {
             <div className="fixed inset-0 z-40 overflow-y-auto">
               <div className="flex min-h-screen items-center justify-center px-4 py-10">
                 <div
-                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  className="absolute inset-0 bg-slate-900/40"
                   onClick={() => setShowRuleModal(false)}
                 />
-                <div className="relative w-full max-w-2xl overflow-hidden rounded-[2rem] border border-cyan-400/15 bg-slate-900/90 shadow-[0_35px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-                  <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(92,225,230,0.06),transparent_35%,rgba(168,85,247,0.08)_70%,transparent)]" />
+                <div className="relative w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card-md">
                   <form onSubmit={handleAddRule}>
                     <div className="relative px-6 pb-6 pt-7 sm:px-8 sm:pb-8">
                       <div className="mb-6">
-                        <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
+                        <span className="inline-flex items-center rounded-md border border-primary-200 bg-primary-50 px-4 py-1 text-xs uppercase tracking-wide text-primary-700">
                           Exception Rule
                         </span>
-                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-100">
+                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">
                           Add smart split rule
                         </h3>
                       </div>
                       <div className="space-y-5">
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Rule Name</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Rule Name</label>
                           <input
                             type="text"
                             required
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={ruleData.name}
                             onChange={(e) => setRuleData({ ...ruleData, name: e.target.value })}
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Rule Type</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Rule Type</label>
                           <select
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={ruleData.rule_type}
                             onChange={(e) => setRuleData({ ...ruleData, rule_type: e.target.value })}
                           >
@@ -777,10 +775,10 @@ const GroupDetail = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Target Member</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Target Member</label>
                           <select
                             required
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={ruleData.target_member_id}
                             onChange={(e) => setRuleData({ ...ruleData, target_member_id: e.target.value })}
                           >
@@ -792,9 +790,9 @@ const GroupDetail = () => {
                         </div>
                         <div className="grid gap-5 sm:grid-cols-2">
                           <div>
-                            <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Category Scope</label>
+                            <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Category Scope</label>
                             <select
-                              className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                              className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                               value={ruleData.applies_to_category}
                               onChange={(e) => setRuleData({ ...ruleData, applies_to_category: e.target.value })}
                             >
@@ -809,10 +807,10 @@ const GroupDetail = () => {
                             </select>
                           </div>
                           <div>
-                            <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Priority</label>
+                            <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Priority</label>
                             <input
                               type="number"
-                              className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                              className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                               value={ruleData.priority}
                               onChange={(e) => setRuleData({ ...ruleData, priority: e.target.value })}
                             />
@@ -820,39 +818,39 @@ const GroupDetail = () => {
                         </div>
                         {ruleData.rule_type !== 'EXCLUDE_MEMBER' && (
                           <div>
-                            <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Rule Value</label>
+                            <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Rule Value</label>
                             <input
                               type="number"
                               step="0.01"
                               required
-                              className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                              className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                               value={ruleData.value}
                               onChange={(e) => setRuleData({ ...ruleData, value: e.target.value })}
                             />
                           </div>
                         )}
                         <div>
-                          <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Description</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Description</label>
                           <textarea
                             rows="3"
-                            className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                            className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                             value={ruleData.description}
                             onChange={(e) => setRuleData({ ...ruleData, description: e.target.value })}
                           />
                         </div>
                       </div>
                     </div>
-                    <div className="relative flex flex-col-reverse gap-3 border-t border-cyan-400/10 bg-slate-950/60 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+                    <div className="relative flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+                        className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700"
                       >
                         Save rule
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowRuleModal(false)}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
                       >
                         Cancel
                       </button>
@@ -867,43 +865,42 @@ const GroupDetail = () => {
             <div className="fixed inset-0 z-40 overflow-y-auto">
               <div className="flex min-h-screen items-center justify-center px-4 py-10">
                 <div
-                  className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                  className="absolute inset-0 bg-slate-900/40"
                   onClick={() => setShowMemberModal(false)}
                 />
-                <div className="relative w-full max-w-xl overflow-hidden rounded-[2rem] border border-cyan-400/15 bg-slate-900/90 shadow-[0_35px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-                  <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(92,225,230,0.06),transparent_35%,rgba(168,85,247,0.08)_70%,transparent)]" />
+                <div className="relative w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card-md">
                   <form onSubmit={handleAddMember}>
                     <div className="relative px-6 pb-6 pt-7 sm:px-8 sm:pb-8">
                       <div className="mb-6">
-                        <span className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-cyan-300">
+                        <span className="inline-flex items-center rounded-md border border-primary-200 bg-primary-50 px-4 py-1 text-xs uppercase tracking-wide text-primary-700">
                           Invite Member
                         </span>
-                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-100">
+                        <h3 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">
                           Add member
                         </h3>
                       </div>
                       <div>
-                        <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-400">Member Email</label>
+                        <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Member Email</label>
                         <input
                           type="email"
                           required
-                          className="block w-full rounded-2xl border border-cyan-400/10 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40 focus:ring-1 focus:ring-cyan-400/30"
+                          className="block w-full rounded-lg border border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                           value={memberEmail}
                           onChange={(e) => setMemberEmail(e.target.value)}
                         />
                       </div>
                     </div>
-                    <div className="relative flex flex-col-reverse gap-3 border-t border-cyan-400/10 bg-slate-950/60 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+                    <div className="relative flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
                       <button
                         type="submit"
-                        className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+                        className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-700"
                       >
                         Add member
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowMemberModal(false)}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-800"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
                       >
                         Cancel
                       </button>

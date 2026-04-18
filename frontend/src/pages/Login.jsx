@@ -28,11 +28,6 @@ const Login = () => {
 
   return (
     <div className="auth-shell">
-      <div className="auth-gridline" />
-      <div className="auth-orbit -left-16 top-20 h-48 w-48 bg-cyan-400/20" />
-      <div className="auth-orbit right-0 top-1/3 h-64 w-64 bg-fuchsia-500/20" />
-      <div className="auth-orbit bottom-0 left-1/3 h-56 w-56 bg-sky-500/20" />
-
       <div className="auth-grid">
         <section className="auth-brand-panel">
           <span className="auth-kicker">Sign In</span>
@@ -57,20 +52,20 @@ const Login = () => {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-              <Shield className="h-5 w-5 text-sky-300" />
-              <p className="mt-3 text-sm font-medium text-slate-100">Secure access</p>
-              <p className="mt-2 text-sm text-slate-400">Private access to your account and groups.</p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <Shield className="h-5 w-5 text-primary-600" />
+              <p className="mt-3 text-sm font-medium text-slate-900">Secure access</p>
+              <p className="mt-2 text-sm text-slate-600">Private access to your account and groups.</p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-              <WalletCards className="h-5 w-5 text-sky-300" />
-              <p className="mt-3 text-sm font-medium text-slate-100">Shared visibility</p>
-              <p className="mt-2 text-sm text-slate-400">Keep expenses, balances, and settlements organized.</p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <WalletCards className="h-5 w-5 text-primary-600" />
+              <p className="mt-3 text-sm font-medium text-slate-900">Shared visibility</p>
+              <p className="mt-2 text-sm text-slate-600">Keep expenses, balances, and settlements organized.</p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-              <Users className="h-5 w-5 text-sky-300" />
-              <p className="mt-3 text-sm font-medium text-slate-100">Built for groups</p>
-              <p className="mt-2 text-sm text-slate-400">Manage roommates, trips, and events in one place.</p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <Users className="h-5 w-5 text-primary-600" />
+              <p className="mt-3 text-sm font-medium text-slate-900">Built for groups</p>
+              <p className="mt-2 text-sm text-slate-600">Manage roommates, trips, and events in one place.</p>
             </div>
           </div>
         </section>
@@ -125,7 +120,7 @@ const Login = () => {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
 
-              <div className="pt-2 text-center text-sm text-slate-400">
+              <div className="pt-2 text-center text-sm text-slate-600">
                 New to the platform?{' '}
                 <Link to="/register" className="auth-link">
                   Create an account

@@ -76,12 +76,15 @@ const Profile = () => {
     }
   };
 
+  const fieldCls =
+    'w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Navbar />
         <div className="mx-auto max-w-4xl px-4 py-12">
-          <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/60 p-8 text-slate-400">
+          <div className="rounded-xl border border-slate-200 bg-white p-8 text-slate-600 shadow-card-md">
             Loading profile...
           </div>
         </div>
@@ -90,33 +93,35 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
       <div className="mx-auto max-w-4xl px-4 py-12">
         <button
+          type="button"
           onClick={() => navigate('/dashboard')}
-          className="mb-6 flex items-center gap-2 text-slate-400 transition hover:text-slate-200"
+          className="mb-6 flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
+          Back to dashboard
         </button>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-card-md">
           <div className="mb-8">
-            <h1 className="text-3xl font-semibold text-slate-50">Profile Settings</h1>
-            <p className="mt-2 text-slate-400">Manage your account information and preferences</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Profile</h1>
+            <p className="mt-2 text-sm text-slate-600">Account details and security</p>
           </div>
 
           <div className="space-y-8">
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-6">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-100">Personal Information</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Personal information</h2>
                 {!editMode && (
                   <button
+                    type="button"
                     onClick={() => setEditMode(true)}
-                    className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+                    className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
                   >
-                    Edit Profile
+                    Edit
                   </button>
                 )}
               </div>
@@ -124,29 +129,29 @@ const Profile = () => {
               {editMode ? (
                 <form onSubmit={handleUpdateProfile} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <User className="inline h-4 w-4 mr-2" />
+                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                      <User className="mr-2 inline h-4 w-4" />
                       Name
                     </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      className={fieldCls}
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <Mail className="inline h-4 w-4 mr-2" />
+                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                      <Mail className="mr-2 inline h-4 w-4" />
                       Email
                     </label>
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      className={fieldCls}
                       required
                     />
                   </div>
@@ -154,10 +159,10 @@ const Profile = () => {
                   <div className="flex gap-3 pt-2">
                     <button
                       type="submit"
-                      className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+                      className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
                     >
                       <Save className="h-4 w-4" />
-                      Save Changes
+                      Save
                     </button>
                     <button
                       type="button"
@@ -168,7 +173,7 @@ const Profile = () => {
                           email: profile.email
                         });
                       }}
-                      className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:text-white"
+                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                     >
                       Cancel
                     </button>
@@ -177,16 +182,16 @@ const Profile = () => {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-slate-400">Name</p>
-                    <p className="mt-1 text-lg text-slate-100">{profile?.name}</p>
+                    <p className="text-sm text-slate-500">Name</p>
+                    <p className="mt-1 text-base font-medium text-slate-900">{profile?.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Email</p>
-                    <p className="mt-1 text-lg text-slate-100">{profile?.email}</p>
+                    <p className="text-sm text-slate-500">Email</p>
+                    <p className="mt-1 text-base font-medium text-slate-900">{profile?.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Member Since</p>
-                    <p className="mt-1 text-lg text-slate-100">
+                    <p className="text-sm text-slate-500">Member since</p>
+                    <p className="mt-1 text-base font-medium text-slate-900">
                       {new Date(profile?.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -194,15 +199,16 @@ const Profile = () => {
               )}
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-6">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-100">Security</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Security</h2>
                 {!showPasswordForm && (
                   <button
+                    type="button"
                     onClick={() => setShowPasswordForm(true)}
-                    className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:text-white"
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-card transition hover:bg-slate-50"
                   >
-                    Change Password
+                    Change password
                   </button>
                 )}
               </div>
@@ -210,38 +216,38 @@ const Profile = () => {
               {showPasswordForm ? (
                 <form onSubmit={handleChangePassword} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      <Lock className="inline h-4 w-4 mr-2" />
-                      Current Password
+                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                      <Lock className="mr-2 inline h-4 w-4" />
+                      Current password
                     </label>
                     <input
                       type="password"
                       value={passwordData.current_password}
                       onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      className={fieldCls}
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">New password</label>
                     <input
                       type="password"
                       value={passwordData.new_password}
                       onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      className={fieldCls}
                       required
                       minLength={6}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Confirm New Password</label>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">Confirm new password</label>
                     <input
                       type="password"
                       value={passwordData.confirm_password}
                       onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-slate-100 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      className={fieldCls}
                       required
                       minLength={6}
                     />
@@ -250,10 +256,10 @@ const Profile = () => {
                   <div className="flex gap-3 pt-2">
                     <button
                       type="submit"
-                      className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+                      className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
                     >
                       <Lock className="h-4 w-4" />
-                      Update Password
+                      Update password
                     </button>
                     <button
                       type="button"
@@ -265,15 +271,15 @@ const Profile = () => {
                           confirm_password: ''
                         });
                       }}
-                      className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:text-white"
+                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                     >
                       Cancel
                     </button>
                   </div>
                 </form>
               ) : (
-                <p className="text-slate-400">
-                  Keep your account secure by using a strong password and changing it regularly.
+                <p className="text-sm text-slate-600">
+                  Use a strong password and update it if you suspect your account may be compromised.
                 </p>
               )}
             </div>
