@@ -9,6 +9,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Groups = lazy(() => import('./pages/Groups'));
 const GroupDetail = lazy(() => import('./pages/GroupDetail'));
 const Friends = lazy(() => import('./pages/Friends'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 function RouteFallback() {
   return (
@@ -67,6 +68,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <Friends />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <Profile />
                   </PrivateRoute>
                 }
               />
