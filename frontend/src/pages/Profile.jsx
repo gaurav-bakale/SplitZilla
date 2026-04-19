@@ -1,293 +1,217 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Reveal from '../components/Reveal';
 import api from '../api/axios';
-import { User, Mail, Lock, Save, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { User, Lock, Save, Loader } from 'lucide-react';
 
-const Profile = () => {
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: ''
-  });
-  const [passwordData, setPasswordData] = useState({
-    current_password: '',
-    new_password: '',
-    confirm_password: ''
-  });
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
+const fieldCls = "block w-full rounded-xl border border-ink/15 bg-paper-50/70 px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-faint focus:border-terracotta focus:ring-4 focus:ring-terracotta/15";
+const labelCls = "label-etched";
+
+export default function Profile() {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState({ name: '', email: '', created_at: null });
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMsg, setProfileMsg] = useState('');
+
+  const [passwords, setPasswords] = useState({ current_password: '', new_password: '', confirm: '' });
+  const [pwdSaving, setPwdSaving] = useState(false);
+  const [pwdMsg, setPwdMsg] = useState('');
 
   useEffect(() => {
-    fetchProfile();
+    api.get('/api/users/profile')
+      .then(r => setProfile({ name: r.data.name || '', email: r.data.email || '', created_at: r.data.created_at }))
+      .catch(() => {})
+      .finally(() => setProfileLoading(false));
   }, []);
 
-  const fetchProfile = async () => {
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setProfileMsg('');
     try {
-      const response = await api.get('/api/users/profile');
-      setProfile(response.data);
-      setFormData({
-        name: response.data.name,
-        email: response.data.email
-      });
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setLoading(false);
+      const r = await api.put('/api/users/profile', { name: profile.name, email: profile.email });
+      const stored = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({ ...stored, name: r.data.name, email: r.data.email }));
+      setProfileMsg('saved');
+    } catch (err) {
+      setProfileMsg(err.response?.data?.error || 'Failed to save');
+    } finally {
+      setProfileSaving(false);
     }
   };
 
-  const handleUpdateProfile = async (e) => {
+  const handlePasswordSave = async (e) => {
     e.preventDefault();
-    try {
-      const response = await api.put('/api/users/profile', formData);
-      setProfile(response.data);
-      setEditMode(false);
-      alert('Profile updated successfully');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert(error.response?.data?.error || 'Failed to update profile');
-    }
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (passwordData.new_password !== passwordData.confirm_password) {
-      alert('New passwords do not match');
+    if (passwords.new_password !== passwords.confirm) {
+      setPwdMsg('New passwords do not match');
       return;
     }
+    setPwdSaving(true);
+    setPwdMsg('');
     try {
       await api.put('/api/users/profile/password', {
-        current_password: passwordData.current_password,
-        new_password: passwordData.new_password
+        current_password: passwords.current_password,
+        new_password: passwords.new_password,
       });
-      setPasswordData({
-        current_password: '',
-        new_password: '',
-        confirm_password: ''
-      });
-      setShowPasswordForm(false);
-      alert('Password changed successfully');
-    } catch (error) {
-      console.error('Error changing password:', error);
-      alert(error.response?.data?.error || 'Failed to change password');
+      setPasswords({ current_password: '', new_password: '', confirm: '' });
+      setPwdMsg('saved');
+    } catch (err) {
+      setPwdMsg(err.response?.data?.error || 'Failed to change password');
+    } finally {
+      setPwdSaving(false);
     }
   };
 
-  const fieldCls =
-    'w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20';
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 text-slate-900">
-        <Navbar />
-        <div className="mx-auto max-w-4xl px-4 py-12">
-          <div className="rounded-xl border border-slate-200 bg-white p-8 text-slate-600 shadow-card-md">
-            Loading profile...
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar />
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard')}
-          className="mb-6 flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to dashboard
-        </button>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-card-md">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-slate-900">Profile</h1>
-            <p className="mt-2 text-sm text-slate-600">Account details and security</p>
-          </div>
-
-          <div className="space-y-8">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Personal information</h2>
-                {!editMode && (
-                  <button
-                    type="button"
-                    onClick={() => setEditMode(true)}
-                    className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
-                  >
-                    Edit
-                  </button>
-                )}
-              </div>
-
-              {editMode ? (
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                      <User className="mr-2 inline h-4 w-4" />
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={fieldCls}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                      <Mail className="mr-2 inline h-4 w-4" />
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className={fieldCls}
-                      required
-                    />
-                  </div>
-
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      type="submit"
-                      className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
-                    >
-                      <Save className="h-4 w-4" />
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditMode(false);
-                        setFormData({
-                          name: profile.name,
-                          email: profile.email
-                        });
-                      }}
-                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-slate-500">Name</p>
-                    <p className="mt-1 text-base font-medium text-slate-900">{profile?.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Email</p>
-                    <p className="mt-1 text-base font-medium text-slate-900">{profile?.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Member since</p>
-                    <p className="mt-1 text-base font-medium text-slate-900">
-                      {new Date(profile?.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Security</h2>
-                {!showPasswordForm && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswordForm(true)}
-                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-card transition hover:bg-slate-50"
-                  >
-                    Change password
-                  </button>
-                )}
-              </div>
-
-              {showPasswordForm ? (
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">
-                      <Lock className="mr-2 inline h-4 w-4" />
-                      Current password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordData.current_password}
-                      onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                      className={fieldCls}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">New password</label>
-                    <input
-                      type="password"
-                      value={passwordData.new_password}
-                      onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                      className={fieldCls}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">Confirm new password</label>
-                    <input
-                      type="password"
-                      value={passwordData.confirm_password}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                      className={fieldCls}
-                      required
-                      minLength={6}
-                    />
-                  </div>
-
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      type="submit"
-                      className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-primary-700"
-                    >
-                      <Lock className="h-4 w-4" />
-                      Update password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowPasswordForm(false);
-                        setPasswordData({
-                          current_password: '',
-                          new_password: '',
-                          confirm_password: ''
-                        });
-                      }}
-                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <p className="text-sm text-slate-600">
-                  Use a strong password and update it if you suspect your account may be compromised.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+    <div className="relative min-h-screen">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 left-[-8rem] h-[32rem] w-[32rem] rounded-full bg-sage/12 blur-3xl" />
+        <div className="absolute top-[30%] right-[-10rem] h-[28rem] w-[28rem] rounded-full bg-terracotta/10 blur-3xl" />
       </div>
+
+      <Navbar />
+
+      <main className="mx-auto max-w-3xl px-6 py-12 lg:px-10">
+        <Reveal>
+          <div className="flex items-center gap-3 text-ink-mute">
+            <span className="h-px w-10 bg-ink-mute/50" />
+            <span className="eyebrow">Settings · your page</span>
+          </div>
+          <h1 className="display mt-4 drop-ornament">
+            <em className="italic text-terracotta">Profile.</em>
+          </h1>
+          <p className="hand mt-3 text-3xl text-ink-soft">— who you are, on record.</p>
+        </Reveal>
+
+        <Reveal delay={80}>
+          <section className="paper-card mt-10 p-8">
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-paper-50">
+                <User className="h-5 w-5 text-terracotta" />
+              </span>
+              <div>
+                <p className="eyebrow">Section 01</p>
+                <h2 className="editorial mt-1 text-2xl">Your details</h2>
+                <p className="mt-1 text-sm text-ink-mute">Update your display name and email address.</p>
+              </div>
+            </div>
+            <div className="rule-dashed mt-6" />
+
+            {profileLoading ? (
+              <p className="mt-6 text-sm text-ink-mute">Loading…</p>
+            ) : (
+              <form onSubmit={handleProfileSave} className="mt-6 space-y-5">
+                <div>
+                  <label className={labelCls}>Display name</label>
+                  <input
+                    type="text"
+                    required
+                    className={fieldCls}
+                    value={profile.name}
+                    onChange={(e) => { const v = e.target.value; setProfile(p => ({ ...p, name: v })); }}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Email</label>
+                  <input
+                    type="email"
+                    required
+                    className={fieldCls}
+                    value={profile.email}
+                    onChange={(e) => { const v = e.target.value; setProfile(p => ({ ...p, email: v })); }}
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <button type="submit" disabled={profileSaving} className="btn-terracotta disabled:cursor-not-allowed disabled:opacity-50">
+                    {profileSaving ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {profileSaving ? 'Saving…' : 'Save changes'}
+                  </button>
+                  {profileMsg && (
+                    <span className={`text-sm ${profileMsg === 'saved' ? 'text-sage-500' : 'text-terracotta-600'}`}>
+                      {profileMsg === 'saved' ? 'Changes saved.' : profileMsg}
+                    </span>
+                  )}
+                </div>
+              </form>
+            )}
+          </section>
+        </Reveal>
+
+        <Reveal delay={140}>
+          <section className="paper-card mt-6 p-8">
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-paper-50">
+                <Lock className="h-5 w-5 text-terracotta" />
+              </span>
+              <div>
+                <p className="eyebrow">Section 02</p>
+                <h2 className="editorial mt-1 text-2xl">Password</h2>
+                <p className="mt-1 text-sm text-ink-mute">Change your account password.</p>
+              </div>
+            </div>
+            <div className="rule-dashed mt-6" />
+
+            <form onSubmit={handlePasswordSave} className="mt-6 space-y-5">
+              <div>
+                <label className={labelCls}>Current password</label>
+                <input
+                  type="password"
+                  required
+                  className={fieldCls}
+                  value={passwords.current_password}
+                  onChange={(e) => { const v = e.target.value; setPasswords(p => ({ ...p, current_password: v })); }}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>New password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  className={fieldCls}
+                  value={passwords.new_password}
+                  onChange={(e) => { const v = e.target.value; setPasswords(p => ({ ...p, new_password: v })); }}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Confirm new password</label>
+                <input
+                  type="password"
+                  required
+                  className={fieldCls}
+                  value={passwords.confirm}
+                  onChange={(e) => { const v = e.target.value; setPasswords(p => ({ ...p, confirm: v })); }}
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <button type="submit" disabled={pwdSaving} className="btn-ink disabled:cursor-not-allowed disabled:opacity-50">
+                  {pwdSaving ? <Loader className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+                  {pwdSaving ? 'Updating…' : 'Update password'}
+                </button>
+                {pwdMsg && (
+                  <span className={`text-sm ${pwdMsg === 'saved' ? 'text-sage-500' : 'text-terracotta-600'}`}>
+                    {pwdMsg === 'saved' ? 'Password updated.' : pwdMsg}
+                  </span>
+                )}
+              </div>
+            </form>
+          </section>
+        </Reveal>
+
+        {profile.created_at && (
+          <Reveal delay={180}>
+            <section className="paper-card mt-6 p-8">
+              <p className="eyebrow">Account</p>
+              <h2 className="editorial mt-1 text-2xl">Member since</h2>
+              <p className="mt-4 font-serif text-2xl text-ink-soft">
+                {new Date(profile.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </section>
+          </Reveal>
+        )}
+      </main>
     </div>
   );
-};
-
-export default Profile;
+}

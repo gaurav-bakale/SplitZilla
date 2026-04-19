@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Users, LayoutDashboard, Heart, Bell, Check, X } from 'lucide-react';
+import { LogOut, Users, LayoutDashboard, Heart, Bell, Check, X, UserCircle } from 'lucide-react';
 import api from '../api/axios';
 
 const Navbar = () => {
@@ -172,6 +172,15 @@ const Navbar = () => {
             )}
           </div>
 
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-50/70 px-3 py-2 text-sm text-ink-soft transition hover:border-ink/30 hover:bg-paper-100 ${isActive ? 'border-terracotta/40 text-terracotta' : ''}`
+            }
+            title="Profile"
+          >
+            <UserCircle className="h-4 w-4" />
+          </NavLink>
           <button
             type="button"
             onClick={handleLogout}

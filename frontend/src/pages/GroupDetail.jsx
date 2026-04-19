@@ -210,7 +210,7 @@ const GroupDetail = () => {
     name: '', description: '', rule_type: 'EXCLUDE_MEMBER',
     target_member_id: '', applies_to_category: '', value: '', priority: 100,
   });
-  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [selectedFriends, setSelectedFriends] = useState(new Set());
   const [friends, setFriends] = useState([]);
   const [expenseSearch, setExpenseSearch] = useState('');
   const [creatingPlan, setCreatingPlan] = useState(false);
@@ -301,11 +301,11 @@ const GroupDetail = () => {
 
   const handleAddMember = async (e) => {
     e.preventDefault();
-    if (!selectedFriend) { alert('Please select a friend to add'); return; }
+    if (!selectedFriends.size) { alert('Please select at least one friend'); return; }
     try {
-      await api.post(`/api/groups/${groupId}/members/${selectedFriend.email}`);
+      await Promise.all([...selectedFriends].map(f => api.post(`/api/groups/${groupId}/members/${f.email}`)));
       setShowMemberModal(false);
-      setSelectedFriend(null);
+      setSelectedFriends(new Set());
       fetchGroupData();
     } catch (error) {
       alert(error.response?.data?.detail || 'Failed to add member');
@@ -1062,11 +1062,11 @@ const GroupDetail = () => {
         </form>
       </Modal>
 
-      <Modal open={showMemberModal} onClose={() => { setShowMemberModal(false); setSelectedFriend(null); }} maxWidth="max-w-xl">
+      <Modal open={showMemberModal} onClose={() => { setShowMemberModal(false); setSelectedFriends(new Set()); }} maxWidth="max-w-xl">
         <form onSubmit={handleAddMember}>
           <div className="px-8 pt-10 pb-6">
             <p className="eyebrow">Invitation</p>
-            <h3 className="editorial mt-3">Add a member.</h3>
+            <h3 className="editorial mt-3">Add members.</h3>
             <div className="mt-6">
               <p className={labelCls}>Select from your friends</p>
               {(() => {
@@ -1081,28 +1081,35 @@ const GroupDetail = () => {
                 }
                 return (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {available.map((f) => (
-                      <button
-                        key={f.user_id}
-                        type="button"
-                        onClick={() => setSelectedFriend(f)}
-                        className={`paper-stamp transition hover:border-terracotta hover:text-terracotta ${
-                          selectedFriend?.user_id === f.user_id
-                            ? 'border-terracotta bg-terracotta-50 text-terracotta'
-                            : ''
-                        }`}
-                      >
-                        <span className="font-serif italic">{f.name}</span>
-                      </button>
-                    ))}
+                    {available.map((f) => {
+                      const selected = selectedFriends.has(f.user_id);
+                      return (
+                        <button
+                          key={f.user_id}
+                          type="button"
+                          onClick={() => setSelectedFriends(prev => {
+                            const next = new Set(prev);
+                            selected ? next.delete(f.user_id) : next.add(f.user_id);
+                            return next;
+                          })}
+                          className={`paper-stamp transition hover:border-terracotta hover:text-terracotta ${
+                            selected ? 'border-terracotta bg-terracotta-50 text-terracotta' : ''
+                          }`}
+                        >
+                          <span className="font-serif italic">{f.name}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 );
               })()}
             </div>
           </div>
           <div className="flex flex-col-reverse gap-3 border-t border-ink/10 bg-paper-200/40 px-8 py-5 sm:flex-row sm:justify-end">
-            <button type="button" onClick={() => { setShowMemberModal(false); setSelectedFriend(null); }} className="btn-ghost">Cancel</button>
-            <button type="submit" disabled={!selectedFriend} className="btn-ink disabled:cursor-not-allowed disabled:opacity-50">Add member</button>
+            <button type="button" onClick={() => { setShowMemberModal(false); setSelectedFriends(new Set()); }} className="btn-ghost">Cancel</button>
+            <button type="submit" disabled={!selectedFriends.size} className="btn-ink disabled:cursor-not-allowed disabled:opacity-50">
+              Add {selectedFriends.size > 0 ? selectedFriends.size : ''} {selectedFriends.size === 1 ? 'member' : 'members'}
+            </button>
           </div>
         </form>
       </Modal>
