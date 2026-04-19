@@ -21,7 +21,9 @@ const GroupDetail = () => {
     description: '',
     amount: '',
     split_type: 'equal',
-    category: 'GENERAL'
+    category: 'GENERAL',
+    is_recurring: false,
+    frequency: 'MONTHLY'
   });
   const [ruleData, setRuleData] = useState({
     name: '',
@@ -130,17 +132,31 @@ const GroupDetail = () => {
   const handleAddExpense = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/api/expenses/', {
-        ...expenseData,
-        amount: parseFloat(expenseData.amount),
-        group_id: groupId
-      });
+      if (expenseData.is_recurring) {
+        await api.post('/api/expenses/recurring/', {
+          description: expenseData.description,
+          amount: parseFloat(expenseData.amount),
+          split_type: expenseData.split_type,
+          category: expenseData.category,
+          frequency: expenseData.frequency,
+          group_id: groupId,
+          run_immediately: true
+        });
+      } else {
+        await api.post('/api/expenses/', {
+          description: expenseData.description,
+          amount: parseFloat(expenseData.amount),
+          split_type: expenseData.split_type,
+          category: expenseData.category,
+          group_id: groupId
+        });
+      }
       setShowExpenseModal(false);
-      setExpenseData({ description: '', amount: '', split_type: 'equal', category: 'GENERAL' });
+      setExpenseData({ description: '', amount: '', split_type: 'equal', category: 'GENERAL', is_recurring: false, frequency: 'MONTHLY' });
       fetchGroupData();
     } catch (error) {
       console.error('Error adding expense:', error);
-      alert('Failed to add expense');
+      alert(error.response?.data?.error || 'Failed to add expense');
     }
   };
 
@@ -708,6 +724,32 @@ const GroupDetail = () => {
                             <option value="percentage">Percentage Split</option>
                             <option value="exact">Exact Amount</option>
                           </select>
+                        </div>
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                          <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+                            <input
+                              type="checkbox"
+                              checked={expenseData.is_recurring}
+                              onChange={(e) => setExpenseData({ ...expenseData, is_recurring: e.target.checked })}
+                              className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            Make this a recurring expense
+                          </label>
+                          {expenseData.is_recurring && (
+                            <div className="mt-4">
+                              <label className="mb-2 block text-xs uppercase tracking-wide text-slate-600">Frequency</label>
+                              <select
+                                className="block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                                value={expenseData.frequency}
+                                onChange={(e) => setExpenseData({ ...expenseData, frequency: e.target.value })}
+                              >
+                                <option value="DAILY">Daily</option>
+                                <option value="WEEKLY">Weekly</option>
+                                <option value="MONTHLY">Monthly</option>
+                              </select>
+                              <p className="mt-2 text-xs text-slate-500">The first expense posts now; future ones are scheduled automatically.</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

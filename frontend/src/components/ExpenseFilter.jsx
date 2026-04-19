@@ -52,20 +52,23 @@ const ExpenseFilter = ({ groupId, onFilteredExpenses, members }) => {
     }
   };
 
-  const exportToCsv = async () => {
+  const EXPORT_EXTENSIONS = { csv: 'csv', json: 'json', markdown: 'md' };
+
+  const exportExpenses = async (format) => {
     try {
-      const response = await api.get(`/api/expenses/group/${groupId}/export/csv`, {
+      const response = await api.get(`/api/expenses/group/${groupId}/export`, {
+        params: { format },
         responseType: 'blob'
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `expenses_${groupId}.csv`);
+      link.setAttribute('download', `expenses_${groupId}.${EXPORT_EXTENSIONS[format]}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (error) {
-      console.error('Error exporting CSV:', error);
+      console.error('Error exporting expenses:', error);
       alert('Failed to export expenses');
     }
   };
@@ -94,14 +97,38 @@ const ExpenseFilter = ({ groupId, onFilteredExpenses, members }) => {
         >
           <Filter className="h-4 w-4" />
         </button>
-        <button
-          type="button"
-          onClick={exportToCsv}
-          className="rounded-lg border border-slate-300 bg-white p-2.5 text-slate-600 shadow-card transition hover:bg-slate-50"
-          title="Export to CSV"
-        >
-          <Download className="h-4 w-4" />
-        </button>
+        <div className="relative group">
+          <button
+            type="button"
+            className="rounded-lg border border-slate-300 bg-white p-2.5 text-slate-600 shadow-card transition hover:bg-slate-50"
+            title="Export expenses"
+          >
+            <Download className="h-4 w-4" />
+          </button>
+          <div className="invisible absolute right-0 top-full z-10 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 opacity-0 shadow-card-md transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+            <button
+              type="button"
+              onClick={() => exportExpenses('csv')}
+              className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            >
+              CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportExpenses('json')}
+              className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            >
+              JSON
+            </button>
+            <button
+              type="button"
+              onClick={() => exportExpenses('markdown')}
+              className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            >
+              Markdown
+            </button>
+          </div>
+        </div>
       </div>
 
       {showFilters && (

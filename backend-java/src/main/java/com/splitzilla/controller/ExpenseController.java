@@ -1,6 +1,7 @@
 package com.splitzilla.controller;
 
 import com.splitzilla.model.Expense;
+import com.splitzilla.pattern.visitor.IExportVisitor;
 import com.splitzilla.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -90,14 +91,19 @@ public class ExpenseController {
         }
     }
 
-    @GetMapping("/group/{groupId}/export/csv")
-    public ResponseEntity<?> exportExpensesToCsv(@PathVariable String groupId) {
+    @GetMapping("/group/{groupId}/export")
+    public ResponseEntity<?> exportExpenses(
+            @PathVariable String groupId,
+            @RequestParam(defaultValue = "csv") String format) {
         try {
-            String csv = expenseService.exportExpensesToCsv(groupId);
+            IExportVisitor visitor = expenseService.exportExpenses(groupId, format);
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentDispositionFormData("attachment", "expenses_" + groupId + ".csv");
-            return ResponseEntity.ok().headers(headers).body(csv);
+            headers.setContentType(MediaType.parseMediaType(visitor.getContentType()));
+            headers.setContentDispositionFormData("attachment",
+                    "expenses_" + groupId + "." + visitor.getFileExtension());
+            return ResponseEntity.ok().headers(headers).body(visitor.getResult());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
