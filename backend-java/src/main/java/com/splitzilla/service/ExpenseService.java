@@ -9,6 +9,8 @@ import com.splitzilla.pattern.builder.CategorySummaryBuilder;
 import com.splitzilla.pattern.observer.NotificationService;
 import com.splitzilla.pattern.strategy.ISplitStrategy;
 import com.splitzilla.pattern.strategy.SplitStrategyFactory;
+import com.splitzilla.pattern.visitor.ExportVisitorFactory;
+import com.splitzilla.pattern.visitor.IExportVisitor;
 import com.splitzilla.repository.ExpenseRepository;
 import com.splitzilla.repository.GroupRepository;
 import com.splitzilla.repository.UserRepository;
@@ -16,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +51,9 @@ public class ExpenseService {
 
     @Autowired
     private ExpenseRuleEngineService expenseRuleEngineService;
+
+    @Autowired
+    private ExportVisitorFactory exportVisitorFactory;
 
     public List<Expense> getExpensesForGroup(String groupId) {
         return expenseRepository.findByGroupId(groupId).stream()
@@ -115,33 +119,17 @@ public class ExpenseService {
                 .collect(Collectors.toList());
     }
 
-    public String exportExpensesToCsv(String groupId) {
-        groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+    public IExportVisitor exportExpenses(String groupId, String format) {
+        Group group = populateGroup(groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found")));
         List<Expense> expenses = getExpensesForGroup(groupId);
 
-        StringBuilder csv = new StringBuilder();
-        csv.append("Date,Description,Amount,Category,Paid By,Split Type,Members\n");
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+        IExportVisitor visitor = exportVisitorFactory.getVisitor(format);
+        visitor.visitGroup(group);
         for (Expense expense : expenses) {
-            csv.append(expense.getDate().format(formatter)).append(",");
-            csv.append("\"").append(expense.getDescription().replace("\"", "\"\"")).append("\"").append(",");
-            csv.append(expense.getAmount()).append(",");
-            csv.append(expense.getCategory().name()).append(",");
-            csv.append("\"").append(expense.getPayer().getName()).append("\"").append(",");
-            csv.append(expense.getSplitType()).append(",");
-
-            String members = expense.getSplits().stream()
-                    .map(split -> split.getUser().getName() + " ($" +
-                            String.format("%.2f", split.getAmount()) + ")")
-                    .collect(Collectors.joining("; "));
-            csv.append("\"").append(members).append("\"");
-            csv.append("\n");
+            visitor.visitExpense(expense);
         }
-
-        return csv.toString();
+        return visitor;
     }
 
     public Map<String, Object> getGroupSummary(String groupId) {

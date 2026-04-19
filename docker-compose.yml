@@ -1,0 +1,30 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: splitzilla-mongo
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend-java
+    container_name: splitzilla-backend
+    depends_on:
+      - mongo
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/splitzilla
+    ports:
+      - "8001:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: splitzilla-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+
+volumes:
+  mongo-data:

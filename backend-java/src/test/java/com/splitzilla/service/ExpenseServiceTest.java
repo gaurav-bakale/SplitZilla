@@ -5,6 +5,8 @@ import com.splitzilla.model.Group;
 import com.splitzilla.model.User;
 import com.splitzilla.repository.ExpenseRepository;
 import com.splitzilla.repository.GroupRepository;
+import com.splitzilla.pattern.visitor.ExportVisitorFactory;
+import com.splitzilla.pattern.visitor.IExportVisitor;
 import com.splitzilla.repository.UserRepository;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +32,9 @@ public class ExpenseServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ExportVisitorFactory exportVisitorFactory;
 
     @InjectMocks
     private ExpenseService expenseService;
@@ -98,15 +103,17 @@ public class ExpenseServiceTest {
     }
 
     @Test
-    public void testExportExpensesToCsv() {
+    public void testExportExpenses() {
         when(groupRepository.findById("group1")).thenReturn(Optional.of(testGroup));
         when(expenseRepository.findByGroupId("group1")).thenReturn(testExpenses);
 
-        String csv = expenseService.exportExpensesToCsv("group1");
+        IExportVisitor visitor = mock(IExportVisitor.class);
+        when(exportVisitorFactory.getVisitor("csv")).thenReturn(visitor);
 
-        assertNotNull(csv);
-        assertTrue(csv.contains("Date,Description,Amount"));
-        assertTrue(csv.contains("Lunch"));
-        assertTrue(csv.contains("Dinner"));
+        IExportVisitor result = expenseService.exportExpenses("group1", "csv");
+
+        assertNotNull(result);
+        verify(visitor).visitGroup(testGroup);
+        verify(visitor, times(testExpenses.size())).visitExpense(any());
     }
 }
