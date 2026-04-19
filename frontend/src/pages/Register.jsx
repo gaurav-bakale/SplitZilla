@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Layers3, Shield, Users } from 'lucide-react';
+import { ArrowRight, Feather, Layers3, Shield, Users } from 'lucide-react';
+import Reveal from '../components/Reveal';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -16,7 +17,6 @@ const Register = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await register(name, email, password);
       navigate('/login');
@@ -27,67 +27,45 @@ const Register = () => {
     }
   };
 
+  const tenets = [
+    { icon: Shield, kicker: 'i.', title: 'A quiet workspace', copy: 'Your ledger, behind a private door.' },
+    { icon: Layers3, kicker: 'ii.', title: 'Groups, neatly kept', copy: 'A page per circle — roommates, trips, crews.' },
+    { icon: Users, kicker: 'iii.', title: 'Decisions in the open', copy: 'Everyone sees the same plain numbers.' },
+  ];
+
   return (
-    <div className="auth-shell">
-      <div className="auth-grid">
-        <section className="auth-brand-panel">
-          <span className="auth-kicker">Create Account</span>
-          <h1 className="auth-title">Create your account</h1>
-          <p className="auth-subtitle">
-            Set up your profile to start tracking group expenses, balances, and settlements with clarity.
-          </p>
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-32 right-[-8rem] h-[32rem] w-[32rem] rounded-full bg-gold/10 blur-3xl" />
+        <div className="absolute bottom-[-12rem] left-[-10rem] h-[34rem] w-[34rem] rounded-full bg-terracotta/10 blur-3xl" />
+      </div>
 
-          <div className="mt-10 space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-primary-600" />
-                <p className="text-sm font-medium text-slate-900">Secure sign-in</p>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Create an account and access your groups from a protected workspace.
-              </p>
+      <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-6 py-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-10">
+        <Reveal delay={120} className="order-2 lg:order-1">
+          <div className="paper-card relative p-8 sm:p-10">
+            <div className="paper-tape" />
+            <div className="flex items-center gap-2 text-ink-mute">
+              <Feather className="h-4 w-4" />
+              <span className="text-xs uppercase tracking-[0.24em]">ink &amp; paper · new chapter</span>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center gap-3">
-                <Layers3 className="h-5 w-5 text-primary-600" />
-                <p className="text-sm font-medium text-slate-900">Group-ready setup</p>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Start with a clean account and organize shared spending by group.
-              </p>
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-primary-600" />
-                <p className="text-sm font-medium text-slate-900">Built for shared decisions</p>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Invite members, track activity, and keep expenses transparent.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="auth-panel">
-          <div className="relative z-10">
-            <span className="auth-kicker">Registration</span>
-            <h2 className="auth-form-title mt-5">Create your profile</h2>
-            <p className="auth-form-copy">
-              Enter your details to get started with shared expense tracking.
-            </p>
+            <h2 className="editorial mt-6">Craft your account</h2>
+            <p className="mt-3 text-ink-mute">A few small details and your ledger is ready.</p>
 
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-              {error && <div className="auth-error">{error}</div>}
+              {error && (
+                <div className="rounded-xl border border-terracotta-200 bg-terracotta-50/80 px-4 py-3 text-sm text-terracotta-600">
+                  {error}
+                </div>
+              )}
 
               <div>
-                <label htmlFor="name" className="auth-label">Full Name</label>
+                <label htmlFor="name" className="label-etched">Full name</label>
                 <input
                   id="name"
-                  name="name"
                   type="text"
-                  autoComplete="name"
                   required
-                  className="auth-input"
+                  autoComplete="name"
+                  className="input-paper"
                   placeholder="Your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -95,14 +73,13 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="auth-label">Email Address</label>
+                <label htmlFor="email" className="label-etched">Email</label>
                 <input
                   id="email"
-                  name="email"
                   type="email"
-                  autoComplete="email"
                   required
-                  className="auth-input"
+                  autoComplete="email"
+                  className="input-paper"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -110,38 +87,65 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="auth-label">Password</label>
+                <label htmlFor="password" className="label-etched">Password</label>
                 <input
                   id="password"
-                  name="password"
                   type="password"
-                  autoComplete="new-password"
                   required
-                  className="auth-input"
-                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  className="input-paper"
+                  placeholder="Choose a passphrase"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="auth-button"
-              >
-                {loading ? 'Creating account...' : 'Create account'}
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <button type="submit" disabled={loading} className="btn-ink w-full disabled:opacity-60">
+                {loading ? 'Pressing the page…' : 'Begin'}
+                <ArrowRight className="h-4 w-4" />
               </button>
 
-              <div className="pt-2 text-center text-sm text-slate-600">
-                Already inside the network?{' '}
-                <Link to="/login" className="auth-link">
+              <div className="rule-dashed pt-5 text-center text-sm text-ink-mute">
+                Already a subscriber?{' '}
+                <Link to="/login" className="link-underline font-medium text-terracotta">
                   Sign in
                 </Link>
               </div>
             </form>
           </div>
-        </section>
+        </Reveal>
+
+        <Reveal className="order-1 lg:order-2">
+          <span className="eyebrow">
+            <span className="h-px w-8 bg-ink-mute/60" />
+            Chapter 02 · A new ledger
+          </span>
+          <h1 className="display-xl mt-6 drop-ornament">
+            Begin a <em className="italic text-terracotta">gentler</em> way to split.
+          </h1>
+          <p className="mt-8 max-w-xl text-lg leading-relaxed text-ink-soft">
+            Keep receipts, rent, road-trips and rituals in one calm place. No arithmetic arguments —
+            just a quiet page that does the counting for you.
+          </p>
+          <p className="hand mt-6 text-3xl text-terracotta">— welcome aboard.</p>
+
+          <div className="mt-14 grid max-w-xl gap-4">
+            {tenets.map((t, i) => (
+              <Reveal key={t.kicker} delay={140 * (i + 1)}>
+                <div className={`paper-card flex items-start gap-4 p-5 ${i === 1 ? 'tilt-right' : 'tilt-left'}`}>
+                  <div className="mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full border border-ink/10 bg-paper-50">
+                    <t.icon className="h-4 w-4 text-terracotta" />
+                  </div>
+                  <div>
+                    <p className="eyebrow">{t.kicker}</p>
+                    <p className="editorial mt-1 text-xl">{t.title}</p>
+                    <p className="mt-1 text-sm text-ink-mute">{t.copy}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </Reveal>
       </div>
     </div>
   );

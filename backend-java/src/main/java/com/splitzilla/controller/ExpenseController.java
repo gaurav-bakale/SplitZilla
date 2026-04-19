@@ -3,6 +3,8 @@ package com.splitzilla.controller;
 import com.splitzilla.model.Expense;
 import com.splitzilla.pattern.visitor.IExportVisitor;
 import com.splitzilla.service.ExpenseService;
+import com.splitzilla.service.ForbiddenException;
+import com.splitzilla.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,30 +24,54 @@ public class ExpenseController {
     @Autowired
     private ExpenseService expenseService;
 
+    @Autowired
+    private GroupService groupService;
+
     @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<Expense>> getExpenses(@PathVariable String groupId) {
-        return ResponseEntity.ok(expenseService.getExpensesForGroup(groupId));
+    public ResponseEntity<?> getExpenses(@PathVariable String groupId, Authentication auth) {
+        try {
+            groupService.requireMember(groupId, auth.getName());
+            return ResponseEntity.ok(expenseService.getExpensesForGroup(groupId));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/")
     public ResponseEntity<?> createExpense(@RequestBody Map<String, Object> body, Authentication auth) {
         try {
             String description = (String) body.get("description");
-            Double amount = ((Number) body.get("amount")).doubleValue();
-            String splitType = (String) body.get("split_type");
+            Object rawAmount = body.get("amount");
+            if (!(rawAmount instanceof Number)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "amount is required"));
+            }
+            Double amount = ((Number) rawAmount).doubleValue();
+            String splitType = body.get("split_type") != null ? (String) body.get("split_type") : "equal";
             String groupId = (String) body.get("group_id");
-            String category = (String) body.get("category");
+            String category = body.get("category") != null ? (String) body.get("category") : "GENERAL";
+            if (groupId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "group_id is required"));
+            }
+            groupService.requireMember(groupId, auth.getName());
             Expense expense = expenseService.createExpense(description, amount, splitType, groupId, auth.getName(), category);
             return ResponseEntity.ok(expense);
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            String msg = e.getMessage() != null ? e.getMessage() : "Failed to create expense";
+            return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
     }
 
     @GetMapping("/balances/group/{groupId}")
-    public ResponseEntity<?> getBalances(@PathVariable String groupId) {
+    public ResponseEntity<?> getBalances(@PathVariable String groupId, Authentication auth) {
         try {
+            groupService.requireMember(groupId, auth.getName());
             return ResponseEntity.ok(expenseService.getBalancesForGroup(groupId));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -60,9 +86,11 @@ public class ExpenseController {
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Double minAmount,
             @RequestParam(required = false) Double maxAmount,
-            @RequestParam(required = false) String category
+            @RequestParam(required = false) String category,
+            Authentication auth
     ) {
         try {
+            groupService.requireMember(groupId, auth.getName());
             LocalDateTime start = null;
             LocalDateTime end = null;
 
@@ -86,6 +114,8 @@ public class ExpenseController {
                     groupId, search, memberId, start, end, minAmount, maxAmount, category
             );
             return ResponseEntity.ok(expenses);
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -94,14 +124,18 @@ public class ExpenseController {
     @GetMapping("/group/{groupId}/export")
     public ResponseEntity<?> exportExpenses(
             @PathVariable String groupId,
-            @RequestParam(defaultValue = "csv") String format) {
+            @RequestParam(defaultValue = "csv") String format,
+            Authentication auth) {
         try {
+            groupService.requireMember(groupId, auth.getName());
             IExportVisitor visitor = expenseService.exportExpenses(groupId, format);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(visitor.getContentType()));
             headers.setContentDispositionFormData("attachment",
                     "expenses_" + groupId + "." + visitor.getFileExtension());
             return ResponseEntity.ok().headers(headers).body(visitor.getResult());
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
@@ -110,9 +144,12 @@ public class ExpenseController {
     }
 
     @GetMapping("/group/{groupId}/summary")
-    public ResponseEntity<?> getGroupSummary(@PathVariable String groupId) {
+    public ResponseEntity<?> getGroupSummary(@PathVariable String groupId, Authentication auth) {
         try {
+            groupService.requireMember(groupId, auth.getName());
             return ResponseEntity.ok(expenseService.getGroupSummary(groupId));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

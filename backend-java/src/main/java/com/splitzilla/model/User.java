@@ -26,6 +26,8 @@ public class User {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    private Set<String> friends = new HashSet<>();
+
     @Transient
     @JsonIgnore
     private Set<Group> groups = new HashSet<>();
@@ -115,5 +117,14 @@ public class User {
 
     public void setNotifications(Set<Notification> notifications) {
         this.notifications = notifications;
+    }
+
+    public Set<String> getFriends() {
+        if (friends == null) friends = new HashSet<>();
+        return friends;
+    }
+
+    public void setFriends(Set<String> friends) {
+        this.friends = friends;
     }
 }

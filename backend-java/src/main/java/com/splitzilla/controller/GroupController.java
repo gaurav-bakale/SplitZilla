@@ -1,6 +1,7 @@
 package com.splitzilla.controller;
 
 import com.splitzilla.model.Group;
+import com.splitzilla.service.ForbiddenException;
 import com.splitzilla.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,18 +34,24 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}")
-    public ResponseEntity<?> getGroup(@PathVariable String groupId) {
+    public ResponseEntity<?> getGroup(@PathVariable String groupId, Authentication auth) {
         try {
+            groupService.requireMember(groupId, auth.getName());
             return ResponseEntity.ok(groupService.getGroup(groupId));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PostMapping("/{groupId}/members/{memberEmail}")
-    public ResponseEntity<?> addMember(@PathVariable String groupId, @PathVariable String memberEmail) {
+    public ResponseEntity<?> addMember(@PathVariable String groupId, @PathVariable String memberEmail, Authentication auth) {
         try {
+            groupService.requireMember(groupId, auth.getName());
             return ResponseEntity.ok(groupService.addMember(groupId, memberEmail));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("detail", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
         }
