@@ -19,8 +19,10 @@ public class ExactAmountSplitStrategy implements ISplitStrategy {
         }
         
         @SuppressWarnings("unchecked")
-        Map<String, Double> exactAmounts = (Map<String, Double>) params.get("exact_amounts");
-        
+        Map<String, Object> rawExact = (Map<String, Object>) params.get("exact_amounts");
+        Map<String, Double> exactAmounts = new java.util.HashMap<>();
+        rawExact.forEach((k, v) -> exactAmounts.put(k, v instanceof Number ? ((Number) v).doubleValue() : 0.0));
+
         double totalSplit = exactAmounts.values().stream().mapToDouble(Double::doubleValue).sum();
         if (Math.abs(totalSplit - amount) > 0.01) {
             throw new IllegalArgumentException(

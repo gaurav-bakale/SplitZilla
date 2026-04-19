@@ -55,7 +55,13 @@ public class ExpenseController {
                 return ResponseEntity.badRequest().body(Map.of("error", "group_id is required"));
             }
             groupService.requireMember(groupId, auth.getName());
-            Expense expense = expenseService.createExpense(description, amount, splitType, groupId, auth.getName(), category);
+            Map<String, Object> splitParams = new java.util.HashMap<>();
+            if ("percentage".equals(splitType) && body.containsKey("percentages")) {
+                splitParams.put("percentages", body.get("percentages"));
+            } else if ("exact".equals(splitType) && body.containsKey("exact_amounts")) {
+                splitParams.put("exact_amounts", body.get("exact_amounts"));
+            }
+            Expense expense = expenseService.createExpense(description, amount, splitType, groupId, auth.getName(), category, splitParams);
             return ResponseEntity.ok(expense);
         } catch (ForbiddenException e) {
             return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
