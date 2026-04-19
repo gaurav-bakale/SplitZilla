@@ -2,10 +2,13 @@ services:
   backend:
     build: ./backend-java
     container_name: splitzilla-backend
-    network_mode: host
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
-      SERVER_PORT: 8001
       SPRING_DATA_MONGODB_URI: mongodb+srv://karans0811_db_user:XAEmhXQiPJhhDyCD@cluster0.54x4icu.mongodb.net/splitzilla?retryWrites=true&w=majority&appName=Cluster0
+    ports:
+      - "8001:8000"
 
   frontend:
     build: ./frontend
