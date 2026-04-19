@@ -185,7 +185,8 @@ public class ExpenseService {
     }
 
     public Expense createExpense(String description, Double amount, String splitType,
-                                 String groupId, String payerEmail, String categoryStr) {
+                                 String groupId, String payerEmail, String categoryStr,
+                                 Map<String, Object> splitParams) {
         Group group = populateGroup(groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found")));
         User payer = userRepository.findByEmail(payerEmail)
@@ -212,7 +213,7 @@ public class ExpenseService {
         List<String> memberIds = new ArrayList<>(group.getMemberIds());
 
         ISplitStrategy strategy = splitStrategyFactory.getStrategy(splitType);
-        Map<String, Double> splits = strategy.split(amount, memberIds, new HashMap<>());
+        Map<String, Double> splits = strategy.split(amount, memberIds, splitParams != null ? splitParams : new HashMap<>());
         ExpenseRuleEngineService.RuleApplicationResult ruleResult = expenseRuleEngineService.applyRules(
                 amount,
                 group,

@@ -51,7 +51,8 @@ public abstract class RecurringExpenseTemplate {
                 rec.getSplitType(),
                 rec.getGroupId(),
                 payerEmail,
-                rec.getCategory() != null ? rec.getCategory().name() : null);
+                rec.getCategory() != null ? rec.getCategory().name() : null,
+                null);
     }
 
     protected abstract LocalDateTime computeNextRunAt(LocalDateTime from);

@@ -27,15 +27,37 @@ const fieldCls = "block w-full rounded-xl border border-ink/15 bg-paper-50/70 px
 const labelCls = "label-etched";
 
 // Extracted so typing only re-renders this component, not the whole page
-const AddExpenseModal = ({ open, onClose, groupId, onSuccess }) => {
+const AddExpenseModal = ({ open, onClose, groupId, members, onSuccess }) => {
   const [data, setData] = useState({
     description: '', amount: '', split_type: 'equal',
     category: 'GENERAL', is_recurring: false, frequency: 'MONTHLY'
   });
+  const [memberValues, setMemberValues] = useState({});
+
+  const setMemberValue = (userId, val) =>
+    setMemberValues(p => ({ ...p, [userId]: val }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        description: data.description, amount: parseFloat(data.amount),
+        split_type: data.split_type, category: data.category, group_id: groupId
+      };
+      if (data.split_type === 'percentage') {
+        const pcts = {};
+        members.forEach(m => { pcts[m.user_id] = parseFloat(memberValues[m.user_id] || 0); });
+        const total = Object.values(pcts).reduce((s, v) => s + v, 0);
+        if (Math.abs(total - 100) > 0.01) { alert(`Percentages must sum to 100 (currently ${total.toFixed(1)})`); return; }
+        payload.percentages = pcts;
+      } else if (data.split_type === 'exact') {
+        const exacts = {};
+        members.forEach(m => { exacts[m.user_id] = parseFloat(memberValues[m.user_id] || 0); });
+        const total = Object.values(exacts).reduce((s, v) => s + v, 0);
+        const amt = parseFloat(data.amount);
+        if (Math.abs(total - amt) > 0.01) { alert(`Exact amounts must sum to ${amt.toFixed(2)} (currently ${total.toFixed(2)})`); return; }
+        payload.exact_amounts = exacts;
+      }
       if (data.is_recurring) {
         await api.post('/api/expenses/recurring/', {
           description: data.description, amount: parseFloat(data.amount),
@@ -43,12 +65,10 @@ const AddExpenseModal = ({ open, onClose, groupId, onSuccess }) => {
           frequency: data.frequency, group_id: groupId, run_immediately: true
         });
       } else {
-        await api.post('/api/expenses/', {
-          description: data.description, amount: parseFloat(data.amount),
-          split_type: data.split_type, category: data.category, group_id: groupId
-        });
+        await api.post('/api/expenses/', payload);
       }
       setData({ description: '', amount: '', split_type: 'equal', category: 'GENERAL', is_recurring: false, frequency: 'MONTHLY' });
+      setMemberValues({});
       onSuccess();
       onClose();
     } catch (error) {
@@ -108,6 +128,37 @@ const AddExpenseModal = ({ open, onClose, groupId, onSuccess }) => {
                 </select>
               </div>
             </div>
+            {(data.split_type === 'percentage' || data.split_type === 'exact') && members.length > 0 && (
+              <div className="rounded-2xl border border-ink/10 bg-paper-50/60 p-4 space-y-3">
+                <p className={labelCls}>
+                  {data.split_type === 'percentage' ? 'Percentage per member (must sum to 100)' : 'Exact amount per member'}
+                </p>
+                {members.map(m => (
+                  <div key={m.user_id} className="flex items-center gap-3">
+                    <span className="w-28 truncate text-sm text-ink-soft">{m.name}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder={data.split_type === 'percentage' ? '%' : '$'}
+                      value={memberValues[m.user_id] ?? ''}
+                      onChange={(e) => { const v = e.target.value; setMemberValue(m.user_id, v); }}
+                      className={`${fieldCls} flex-1`}
+                    />
+                  </div>
+                ))}
+                {data.split_type === 'percentage' && (
+                  <p className="text-xs text-ink-mute">
+                    Total: {members.reduce((s, m) => s + parseFloat(memberValues[m.user_id] || 0), 0).toFixed(1)}%
+                  </p>
+                )}
+                {data.split_type === 'exact' && data.amount && (
+                  <p className="text-xs text-ink-mute">
+                    Total: ${members.reduce((s, m) => s + parseFloat(memberValues[m.user_id] || 0), 0).toFixed(2)} / ${parseFloat(data.amount || 0).toFixed(2)}
+                  </p>
+                )}
+              </div>
+            )}
             <div className="rounded-2xl border border-ink/10 bg-paper-50/60 p-4">
               <label className="flex items-center gap-3 text-sm text-ink-soft">
                 <input
@@ -925,6 +976,7 @@ const GroupDetail = () => {
         open={showExpenseModal}
         onClose={() => setShowExpenseModal(false)}
         groupId={groupId}
+        members={group?.members || []}
         onSuccess={fetchGroupData}
       />
 

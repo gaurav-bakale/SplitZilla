@@ -19,8 +19,10 @@ public class PercentageSplitStrategy implements ISplitStrategy {
         }
         
         @SuppressWarnings("unchecked")
-        Map<String, Double> percentages = (Map<String, Double>) params.get("percentages");
-        
+        Map<String, Object> rawPercentages = (Map<String, Object>) params.get("percentages");
+        Map<String, Double> percentages = new HashMap<>();
+        rawPercentages.forEach((k, v) -> percentages.put(k, v instanceof Number ? ((Number) v).doubleValue() : 0.0));
+
         double totalPercentage = percentages.values().stream().mapToDouble(Double::doubleValue).sum();
         if (Math.abs(totalPercentage - 100.0) > 0.01) {
             throw new IllegalArgumentException("Percentages must sum to 100, got " + totalPercentage);
