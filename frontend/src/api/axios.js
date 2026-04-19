@@ -24,8 +24,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    // Backend uses 401 after auth fixes; treat 403 on API errors as expired/invalid session too (common Spring default before fix).
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

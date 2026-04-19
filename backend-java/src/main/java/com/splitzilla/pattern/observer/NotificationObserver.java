@@ -37,7 +37,37 @@ public class NotificationObserver implements IObserver {
             case "group_created":
                 handleGroupCreated(event);
                 break;
+            case "friend_request_sent":
+                handleFriendRequestSent(event);
+                break;
+            case "friend_request_accepted":
+                handleFriendRequestAccepted(event);
+                break;
         }
+    }
+
+    private void handleFriendRequestSent(Map<String, Object> event) {
+        String toUserId = (String) event.get("to_user_id");
+        String fromName = (String) event.get("from_user_name");
+        userRepository.findById(toUserId).ifPresent(user -> {
+            Notification n = new Notification();
+            n.setUser(user);
+            n.setMessage(String.format("%s sent you a friend request", fromName));
+            n.setIsRead(false);
+            notificationRepository.save(n);
+        });
+    }
+
+    private void handleFriendRequestAccepted(Map<String, Object> event) {
+        String toUserId = (String) event.get("to_user_id");
+        String accepterName = (String) event.get("accepter_name");
+        userRepository.findById(toUserId).ifPresent(user -> {
+            Notification n = new Notification();
+            n.setUser(user);
+            n.setMessage(String.format("%s accepted your friend request", accepterName));
+            n.setIsRead(false);
+            notificationRepository.save(n);
+        });
     }
     
     @SuppressWarnings("unchecked")

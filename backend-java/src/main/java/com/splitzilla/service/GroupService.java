@@ -60,6 +60,16 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found")));
     }
 
+    public void requireMember(String groupId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+        if (group.getMemberIds() == null || !group.getMemberIds().contains(user.getUserId())) {
+            throw new ForbiddenException("Not a member of this group");
+        }
+    }
+
     public Group addMember(String groupId, String memberEmail) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
