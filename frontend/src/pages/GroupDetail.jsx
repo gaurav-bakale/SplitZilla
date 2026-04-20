@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Reveal from '../components/Reveal';
 import api from '../api/axios';
 import {
   Plus, Users, CheckCircle2, Search, ArrowRight, WalletCards, Activity,
-  Orbit, TimerReset, Loader, ShieldAlert, Trash2, Coins, Receipt,
+  Orbit, TimerReset, Loader, Trash2, Coins, Receipt,
   Clock, UserPlus, Sparkles, Banknote, ScrollText, FileSignature
 } from 'lucide-react';
 
@@ -195,21 +195,16 @@ const AddExpenseModal = ({ open, onClose, groupId, members, onSuccess }) => {
 
 const GroupDetail = () => {
   const { groupId } = useParams();
+  const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [balances, setBalances] = useState(null);
   const [settlementOverview, setSettlementOverview] = useState(null);
-  const [exceptionRules, setExceptionRules] = useState([]);
   const [settlementError, setSettlementError] = useState('');
   const [pageLoading, setPageLoading] = useState(true);
   const [pageError, setPageError] = useState('');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showMemberModal, setShowMemberModal] = useState(false);
-  const [showRuleModal, setShowRuleModal] = useState(false);
-  const [ruleData, setRuleData] = useState({
-    name: '', description: '', rule_type: 'EXCLUDE_MEMBER',
-    target_member_id: '', applies_to_category: '', value: '', priority: 100,
-  });
   const [selectedFriends, setSelectedFriends] = useState(new Set());
   const [friends, setFriends] = useState([]);
   const [expenseSearch, setExpenseSearch] = useState('');
@@ -217,6 +212,7 @@ const GroupDetail = () => {
   const [payingSettlementId, setPayingSettlementId] = useState('');
   const [paymentInputs, setPaymentInputs] = useState({});
   const [exportOpen, setExportOpen] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(false);
   const [activities, setActivities] = useState([]);
   const [activityFilter, setActivityFilter] = useState('ALL');
 
@@ -232,12 +228,11 @@ const GroupDetail = () => {
     setPageLoading(true);
     setPageError('');
     try {
-      const [groupRes, expensesRes, balancesRes, settlementsRes, rulesRes, activityRes] = await Promise.allSettled([
+      const [groupRes, expensesRes, balancesRes, settlementsRes, activityRes] = await Promise.allSettled([
         api.get(`/api/groups/${groupId}`),
         api.get(`/api/expenses/group/${groupId}`),
         api.get(`/api/expenses/balances/group/${groupId}`),
         api.get(`/api/settlements/group/${groupId}`),
-        api.get(`/api/groups/${groupId}/exception-rules`),
         api.get(`/api/activity/group/${groupId}`)
       ]);
       const activityData = activityRes.status === 'fulfilled' ? activityRes.value.data : [];
@@ -248,7 +243,6 @@ const GroupDetail = () => {
       setGroup(groupRes.value.data);
       setExpenses(expensesRes.value.data);
       setBalances(balancesRes.value.data);
-      setExceptionRules(rulesRes.status === 'fulfilled' ? rulesRes.value.data : []);
       if (settlementsRes.status === 'fulfilled') {
         setSettlementOverview(settlementsRes.value.data);
         setSettlementError('');
@@ -303,38 +297,34 @@ const GroupDetail = () => {
     e.preventDefault();
     if (!selectedFriends.size) { alert('Please select at least one friend'); return; }
     try {
-      await Promise.all([...selectedFriends].map(f => api.post(`/api/groups/${groupId}/members/${f.email}`)));
+      const emails = [...selectedFriends]
+        .map((id) => friends.find((f) => f.user_id === id)?.email)
+        .filter(Boolean);
+      if (!emails.length) { alert('Could not resolve selected friends'); return; }
+      for (const email of emails) {
+        await api.post(`/api/groups/${groupId}/members/${encodeURIComponent(email)}`);
+      }
       setShowMemberModal(false);
       setSelectedFriends(new Set());
       fetchGroupData();
     } catch (error) {
-      alert(error.response?.data?.detail || 'Failed to add member');
+      alert(error.response?.data?.detail || error.response?.data?.error || 'Failed to add member');
     }
   };
 
-  const handleAddRule = async (e) => {
-    e.preventDefault();
+  const handleDeleteGroup = async () => {
+    const name = group?.name || 'this group';
+    const confirmed = window.confirm(
+      `Delete "${name}"? This removes the group, every expense, every settlement, and the chronicle — permanently. This cannot be undone.`
+    );
+    if (!confirmed) return;
+    setDeletingGroup(true);
     try {
-      await api.post(`/api/groups/${groupId}/exception-rules`, {
-        ...ruleData,
-        value: ruleData.value === '' ? null : parseFloat(ruleData.value),
-        priority: parseInt(ruleData.priority, 10),
-        applies_to_category: ruleData.applies_to_category || null,
-      });
-      setShowRuleModal(false);
-      setRuleData({ name: '', description: '', rule_type: 'EXCLUDE_MEMBER', target_member_id: '', applies_to_category: '', value: '', priority: 100 });
-      fetchGroupData();
+      await api.delete(`/api/groups/${groupId}`);
+      navigate('/groups');
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to add exception rule');
-    }
-  };
-
-  const handleDeleteRule = async (ruleId) => {
-    try {
-      await api.delete(`/api/groups/${groupId}/exception-rules/${ruleId}`);
-      fetchGroupData();
-    } catch (error) {
-      alert(error.response?.data?.error || 'Failed to delete exception rule');
+      alert(error.response?.data?.error || 'Failed to delete group');
+      setDeletingGroup(false);
     }
   };
 
@@ -415,14 +405,25 @@ const GroupDetail = () => {
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
                 {group.description || 'Track shared expenses, review balances, and manage settlements — all in one calm ledger.'}
               </p>
-              {/* Add expense button at the top */}
-              <button
-                onClick={() => setShowExpenseModal(true)}
-                className="btn-terracotta mt-6"
-              >
-                <Plus className="h-4 w-4" />
-                Add expense
-              </button>
+              {/* Add expense + delete group */}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setShowExpenseModal(true)}
+                  className="btn-terracotta"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add expense
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteGroup}
+                  disabled={deletingGroup}
+                  className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-50/70 px-4 py-2 text-sm text-ink-soft transition hover:border-terracotta hover:text-terracotta disabled:opacity-60"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {deletingGroup ? 'Deleting…' : 'Delete group'}
+                </button>
+              </div>
             </div>
             <div className="grid gap-4 self-end">
               <div className="paper-card p-5">
@@ -698,64 +699,11 @@ const GroupDetail = () => {
           </section>
         </Reveal>
 
-        <Reveal delay={220}>
-          <section className="paper-card mt-8 p-8">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="eyebrow">Section 05 · Rules</p>
-                <h2 className="editorial mt-2">Exceptions, elegantly.</h2>
-                <p className="mt-2 max-w-xl text-sm text-ink-mute">Smart split exceptions — exclusions, fixed shares, and caps for this group.</p>
-              </div>
-              <button
-                onClick={() => setShowRuleModal(true)}
-                className="btn-terracotta"
-              >
-                <ShieldAlert className="h-4 w-4" />
-                Add rule
-              </button>
-            </div>
-            <div className="rule-dashed mt-5" />
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {exceptionRules.map((rule, i) => (
-                <div key={rule.rule_id} className={`paper-card p-5 ${i % 2 ? 'tilt-right' : 'tilt-left'}`}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-serif text-lg text-ink">{rule.name}</p>
-                      <p className="eyebrow mt-1 text-terracotta">{rule.rule_type}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteRule(rule.rule_id)}
-                      className="rounded-full border border-ink/15 p-2 text-ink-mute transition hover:border-terracotta hover:text-terracotta"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <dl className="mt-4 space-y-1.5 text-sm text-ink-soft">
-                    <div className="flex justify-between gap-3"><dt className="text-ink-mute">Target</dt><dd>{rule.target_member_name || '—'}</dd></div>
-                    <div className="flex justify-between gap-3"><dt className="text-ink-mute">Category</dt><dd>{rule.applies_to_category || 'Any'}</dd></div>
-                    {rule.value !== null && rule.value !== undefined && (
-                      <div className="flex justify-between gap-3"><dt className="text-ink-mute">Value</dt><dd className="tabular-nums">{rule.value}</dd></div>
-                    )}
-                    <div className="flex justify-between gap-3"><dt className="text-ink-mute">Priority</dt><dd className="tabular-nums">{rule.priority}</dd></div>
-                  </dl>
-                  {rule.description && <p className="mt-3 text-xs leading-6 text-ink-mute">{rule.description}</p>}
-                </div>
-              ))}
-              {exceptionRules.length === 0 && (
-                <p className="col-span-full rounded-2xl border border-dashed border-ink/15 bg-paper-50/40 p-6 text-sm text-ink-mute">
-                  No exception rules yet. Add one to make shared expenses behave more like real life.
-                </p>
-              )}
-            </div>
-          </section>
-        </Reveal>
-
         <Reveal delay={240}>
           <section className="paper-card mt-8 p-8">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="eyebrow">Section 06 · Ledger</p>
+                <p className="eyebrow">Section 05 · Ledger</p>
                 <h2 className="editorial mt-2">Every entry, kept.</h2>
                 <p className="mt-2 max-w-xl text-sm text-ink-mute">Search and review every spend event tied to this group.</p>
               </div>
@@ -841,18 +789,6 @@ const GroupDetail = () => {
                           <ArrowRight className="ml-auto mt-2 h-4 w-4 text-ink-mute" />
                         </div>
                       </div>
-                      {expense.applied_rule_summaries?.length > 0 && (
-                        <div className="mt-4 rounded-xl border border-terracotta/20 bg-terracotta-50/50 p-3">
-                          <p className="eyebrow text-terracotta-600">applied exception rules</p>
-                          <ul className="mt-2 space-y-1">
-                            {expense.applied_rule_summaries.map((summary, idx) => (
-                              <li key={`${expense.expense_id}-rule-${idx}`} className="text-sm text-ink-soft">
-                                — {summary}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </li>
                   );
                 })}
@@ -869,7 +805,7 @@ const GroupDetail = () => {
         <section className="paper-card mt-8 p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="eyebrow">Section 07 · Chronicle</p>
+              <p className="eyebrow">Section 06 · Chronicle</p>
               <h2 className="editorial mt-2">The group's diary.</h2>
               <p className="mt-2 max-w-xl text-sm text-ink-mute">
                 Every move — entries, invitations, settlements — kept in order, newest first.
@@ -979,88 +915,6 @@ const GroupDetail = () => {
         members={group?.members || []}
         onSuccess={fetchGroupData}
       />
-
-      <Modal open={showRuleModal} onClose={() => setShowRuleModal(false)}>
-        <form onSubmit={handleAddRule}>
-          <div className="px-8 pt-10 pb-6">
-            <p className="eyebrow">Exception</p>
-            <h3 className="editorial mt-3">Add a smart split rule.</h3>
-            <div className="mt-6 space-y-5">
-              <div>
-                <label className={labelCls}>Name</label>
-                <input type="text" required className={fieldCls}
-                  value={ruleData.name}
-                  onChange={(e) => setRuleData({ ...ruleData, name: e.target.value })} />
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label className={labelCls}>Rule type</label>
-                  <select className={fieldCls}
-                    value={ruleData.rule_type}
-                    onChange={(e) => setRuleData({ ...ruleData, rule_type: e.target.value })}>
-                    <option value="EXCLUDE_MEMBER">Exclude member</option>
-                    <option value="FIXED_AMOUNT">Fixed amount</option>
-                    <option value="FIXED_PERCENTAGE">Fixed percentage</option>
-                    <option value="CAP_AMOUNT">Cap amount</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelCls}>Target member</label>
-                  <select required className={fieldCls}
-                    value={ruleData.target_member_id}
-                    onChange={(e) => setRuleData({ ...ruleData, target_member_id: e.target.value })}>
-                    <option value="">Select a member</option>
-                    {group?.members?.map((m) => (
-                      <option key={m.user_id} value={m.user_id}>{m.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label className={labelCls}>Category scope</label>
-                  <select className={fieldCls}
-                    value={ruleData.applies_to_category}
-                    onChange={(e) => setRuleData({ ...ruleData, applies_to_category: e.target.value })}>
-                    <option value="">Any category</option>
-                    <option value="GENERAL">General</option>
-                    <option value="FOOD">Food</option>
-                    <option value="ACCOMMODATION">Accommodation</option>
-                    <option value="TRANSPORT">Transport</option>
-                    <option value="ENTERTAINMENT">Entertainment</option>
-                    <option value="UTILITIES">Utilities</option>
-                    <option value="SHOPPING">Shopping</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelCls}>Priority</label>
-                  <input type="number" className={fieldCls}
-                    value={ruleData.priority}
-                    onChange={(e) => setRuleData({ ...ruleData, priority: e.target.value })} />
-                </div>
-              </div>
-              {ruleData.rule_type !== 'EXCLUDE_MEMBER' && (
-                <div>
-                  <label className={labelCls}>Rule value</label>
-                  <input type="number" step="0.01" required className={fieldCls}
-                    value={ruleData.value}
-                    onChange={(e) => setRuleData({ ...ruleData, value: e.target.value })} />
-                </div>
-              )}
-              <div>
-                <label className={labelCls}>Description</label>
-                <textarea rows="3" className={fieldCls}
-                  value={ruleData.description}
-                  onChange={(e) => setRuleData({ ...ruleData, description: e.target.value })} />
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col-reverse gap-3 border-t border-ink/10 bg-paper-200/40 px-8 py-5 sm:flex-row sm:justify-end">
-            <button type="button" onClick={() => setShowRuleModal(false)} className="btn-ghost">Cancel</button>
-            <button type="submit" className="btn-ink">Save rule</button>
-          </div>
-        </form>
-      </Modal>
 
       <Modal open={showMemberModal} onClose={() => { setShowMemberModal(false); setSelectedFriends(new Set()); }} maxWidth="max-w-xl">
         <form onSubmit={handleAddMember}>

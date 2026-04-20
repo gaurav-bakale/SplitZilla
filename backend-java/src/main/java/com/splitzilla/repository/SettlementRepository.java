@@ -13,4 +13,5 @@ public interface SettlementRepository extends MongoRepository<Settlement, String
     List<Settlement> findByGroupIdAndStatusInOrderByCreatedAtAsc(String groupId, Collection<SettlementStatus> statuses);
     List<Settlement> findByGroupIdAndStatusOrderBySettledAtDesc(String groupId, SettlementStatus status);
     Optional<Settlement> findBySettlementIdAndGroupId(String settlementId, String groupId);
+    void deleteByGroupId(String groupId);
 }

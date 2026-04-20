@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ExpenseRepository extends MongoRepository<Expense, String> {
     List<Expense> findByGroupId(String groupId);
+    void deleteByGroupId(String groupId);
 }

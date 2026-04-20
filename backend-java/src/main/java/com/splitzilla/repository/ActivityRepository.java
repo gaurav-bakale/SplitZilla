@@ -9,4 +9,5 @@ import java.util.List;
 public interface ActivityRepository extends MongoRepository<Activity, String> {
     List<Activity> findByGroupIdOrderByCreatedAtDesc(String groupId);
     List<Activity> findByGroupIdAndActivityTypeOrderByCreatedAtDesc(String groupId, ActivityType activityType);
+    void deleteByGroupId(String groupId);
 }

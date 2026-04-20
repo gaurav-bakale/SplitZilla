@@ -45,6 +45,18 @@ public class GroupController {
         }
     }
 
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<?> deleteGroup(@PathVariable String groupId, Authentication auth) {
+        try {
+            groupService.deleteGroup(groupId, auth.getName());
+            return ResponseEntity.ok(Map.of("message", "Group deleted"));
+        } catch (ForbiddenException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/{groupId}/members/{memberEmail}")
     public ResponseEntity<?> addMember(@PathVariable String groupId, @PathVariable String memberEmail, Authentication auth) {
         try {
