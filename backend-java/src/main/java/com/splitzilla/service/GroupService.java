@@ -3,7 +3,13 @@ package com.splitzilla.service;
 import com.splitzilla.model.Group;
 import com.splitzilla.model.User;
 import com.splitzilla.pattern.observer.NotificationService;
+import com.splitzilla.repository.ActivityRepository;
+import com.splitzilla.repository.ExceptionRuleRepository;
+import com.splitzilla.repository.ExpenseRepository;
+import com.splitzilla.repository.GroupBudgetRepository;
 import com.splitzilla.repository.GroupRepository;
+import com.splitzilla.repository.RecurringExpenseRepository;
+import com.splitzilla.repository.SettlementRepository;
 import com.splitzilla.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +32,24 @@ public class GroupService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private ExpenseRepository expenseRepository;
+
+    @Autowired
+    private SettlementRepository settlementRepository;
+
+    @Autowired
+    private ActivityRepository activityRepository;
+
+    @Autowired
+    private RecurringExpenseRepository recurringExpenseRepository;
+
+    @Autowired
+    private ExceptionRuleRepository exceptionRuleRepository;
+
+    @Autowired
+    private GroupBudgetRepository groupBudgetRepository;
 
     public List<Group> getGroupsForUser(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
@@ -58,6 +82,23 @@ public class GroupService {
     public Group getGroup(String groupId) {
         return populateMembers(groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found")));
+    }
+
+    public void deleteGroup(String groupId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+        if (group.getMemberIds() == null || !group.getMemberIds().contains(user.getUserId())) {
+            throw new ForbiddenException("Not a member of this group");
+        }
+        expenseRepository.deleteByGroupId(groupId);
+        settlementRepository.deleteByGroupId(groupId);
+        activityRepository.deleteByGroupId(groupId);
+        recurringExpenseRepository.deleteByGroupId(groupId);
+        exceptionRuleRepository.deleteByGroupId(groupId);
+        groupBudgetRepository.deleteByGroupId(groupId);
+        groupRepository.deleteById(groupId);
     }
 
     public void requireMember(String groupId, String userEmail) {

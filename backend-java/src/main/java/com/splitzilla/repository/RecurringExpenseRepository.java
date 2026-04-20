@@ -9,4 +9,5 @@ import java.util.List;
 public interface RecurringExpenseRepository extends MongoRepository<RecurringExpense, String> {
     List<RecurringExpense> findByGroupId(String groupId);
     List<RecurringExpense> findByActiveTrueAndNextRunAtBefore(LocalDateTime cutoff);
+    void deleteByGroupId(String groupId);
 }

@@ -1,11 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Users, LayoutDashboard, Heart, Bell, Check, X, UserCircle } from 'lucide-react';
+import { LogOut, Users, LayoutDashboard, Heart, Bell, Check, X } from 'lucide-react';
 import api from '../api/axios';
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const displayName = user?.name || user?.email?.split('@')[0] || 'You';
+  const firstName = displayName.split(' ')[0];
+  const initials = (displayName || '?')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -175,11 +184,16 @@ const Navbar = () => {
           <NavLink
             to="/profile"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-50/70 px-3 py-2 text-sm text-ink-soft transition hover:border-ink/30 hover:bg-paper-100 ${isActive ? 'border-terracotta/40 text-terracotta' : ''}`
+              `inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-50/70 py-1 pl-1 pr-3 text-sm transition hover:border-ink/30 hover:bg-paper-100 ${
+                isActive ? 'border-terracotta/40 text-terracotta' : 'text-ink-soft'
+              }`
             }
-            title="Profile"
+            title="Your profile"
           >
-            <UserCircle className="h-4 w-4" />
+            <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full border border-ink/10 bg-paper-50 font-serif text-xs italic text-terracotta">
+              {initials || '?'}
+            </span>
+            <span className="hidden max-w-[8rem] truncate sm:inline">{firstName}</span>
           </NavLink>
           <button
             type="button"

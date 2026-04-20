@@ -11,8 +11,11 @@ import com.splitzilla.pattern.strategy.ISplitStrategy;
 import com.splitzilla.pattern.strategy.SplitStrategyFactory;
 import com.splitzilla.pattern.visitor.ExportVisitorFactory;
 import com.splitzilla.pattern.visitor.IExportVisitor;
+import com.splitzilla.model.Settlement;
+import com.splitzilla.model.SettlementStatus;
 import com.splitzilla.repository.ExpenseRepository;
 import com.splitzilla.repository.GroupRepository;
+import com.splitzilla.repository.SettlementRepository;
 import com.splitzilla.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,6 +57,9 @@ public class ExpenseService {
 
     @Autowired
     private ExportVisitorFactory exportVisitorFactory;
+
+    @Autowired
+    private SettlementRepository settlementRepository;
 
     public List<Expense> getExpensesForGroup(String groupId) {
         return expenseRepository.findByGroupId(groupId).stream()
@@ -260,6 +266,7 @@ public class ExpenseService {
         Group group = populateGroup(groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found")));
         Map<String, Double> balanceMap = calculateBalanceMap(groupId, group);
+        applySettlementPayments(groupId, balanceMap);
         Map<String, String> nameMap = new HashMap<>();
 
         for (User member : group.getMembers()) {
@@ -299,6 +306,26 @@ public class ExpenseService {
         }
 
         return balanceMap;
+    }
+
+    /**
+     * Reduce open balances by any settlement payments recorded for the group.
+     * A payer paying $X shrinks their debt (+X to their balance) and the payee's credit (-X).
+     * We consider both COMPLETED settlements and partial payments on active (PENDING/PARTIAL) ones.
+     */
+    private void applySettlementPayments(String groupId, Map<String, Double> balanceMap) {
+        List<Settlement> settlements = settlementRepository.findByGroupIdAndStatusInOrderByCreatedAtAsc(
+                groupId, List.of(SettlementStatus.PENDING, SettlementStatus.PARTIAL, SettlementStatus.COMPLETED)
+        );
+        for (Settlement s : settlements) {
+            double paid = s.getPaidAmount() == null ? 0.0 : s.getPaidAmount();
+            if (paid <= 0.009) continue;
+            String payerId = s.getPayer() != null ? s.getPayer().getUserId() : s.getPayerId();
+            String payeeId = s.getPayee() != null ? s.getPayee().getUserId() : s.getPayeeId();
+            if (payerId == null || payeeId == null) continue;
+            balanceMap.merge(payerId, paid, Double::sum);
+            balanceMap.merge(payeeId, -paid, Double::sum);
+        }
     }
 
     private Group populateGroup(Group group) {

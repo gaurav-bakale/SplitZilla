@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface ExceptionRuleRepository extends MongoRepository<ExceptionRule, String> {
     List<ExceptionRule> findByGroupIdOrderByPriorityAscCreatedAtAsc(String groupId);
     Optional<ExceptionRule> findByRuleIdAndGroupId(String ruleId, String groupId);
+    void deleteByGroupId(String groupId);
 }
